@@ -59,7 +59,7 @@ canvas#confetti {
     font-weight: 800;
     font-size: 30px;
     position: absolute;
-    top: 54%;
+    top: 59%;
     left: 50%;
     transform: translateX(-50%) rotate(-2deg);
     color: white;
