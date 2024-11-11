@@ -8,3 +8,10 @@ body{
     display:inline;
     position: absolute;
 }
+#realismToggleButton{
+    margin: 0;
+    padding: 0;
+    top: 3%;
+    display:inline;
+    position: absolute;
+}

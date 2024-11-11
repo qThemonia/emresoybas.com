@@ -3,9 +3,10 @@ import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/exampl
 import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { Lensflare, LensflareElement } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/objects/Lensflare.js';
+import { SSAARenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/SSAARenderPass.js';
 
-const renderer = new THREE.WebGLRenderer();
+
+const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -19,10 +20,17 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.autoRotate = false;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minPolarAngle = 0;
+controls.maxPolarAngle = Math.PI;
 
 // Composer with bloom pass
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
+const ssaaPass = new SSAARenderPass(scene, camera);
+ssaaPass.sampleLevel = 3;
+composer.addPass(ssaaPass);
 
 const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
@@ -43,6 +51,7 @@ function bloomToggle() {
 }
 
 document.getElementById("bloomToggleButton").addEventListener("click", bloomToggle);
+document.getElementById("realismToggleButton").addEventListener("click", realismToggle);
 
 // Set up PointLight (sunLight) and Lensflare separately from sunSphere
 const sunLight = new THREE.PointLight(0xffffff, 500000, 250000, 1.5); // Increase decay for a more natural falloff
@@ -64,22 +73,59 @@ let earthOrbit, earthOrbitF = 2000, earthOrbitR = 93000;
 let moonSize, moonSizeF = 30, moonSizeR = 0.25;
 let moonOrbit, moonOrbitF = 300, moonOrbitR = 384;
 
+function realismToggle() {
+    realism = !realism;
+
+    // Update sizes and distances based on realism state
+    if (realism) {
+        sunSize = sunSizeR;
+        earthSize = earthSizeR;
+        earthOrbit = earthOrbitR;
+        moonSize = moonSizeR;
+        moonOrbit = moonOrbitR;
+        camera.position.set(0, 5000, 200000);
+        camera.far = 500000;
+    } else {
+        sunSize = sunSizeF;
+        earthSize = earthSizeF;
+        earthOrbit = earthOrbitF;
+        moonSize = moonSizeF;
+        moonOrbit = moonOrbitF;
+        camera.position.set(0, 1000, 4000);
+        camera.far = 50000;
+    }
+    camera.updateProjectionMatrix();
+
+    // Update sun size
+    sunSphere.geometry.dispose(); // Remove the old geometry
+    sunSphere.geometry = new THREE.SphereGeometry(sunSize, 32, 32);
+
+    // Update earth size and orbit
+    earthSphere.geometry.dispose();
+    earthSphere.geometry = new THREE.SphereGeometry(earthSize, 32, 32);
+
+    // Update Earth's orbit path
+    const newEarthCurve = new THREE.EllipseCurve(0, 0, earthOrbit, earthOrbit, 0, 2 * Math.PI, true);
+    const newEarthPoints = newEarthCurve.getPoints(10000);
+    earthOrbitGeometry.setFromPoints(newEarthPoints);
+    earthPoints = newEarthPoints;
+
+    // Update moon size and orbit
+    moonSphere.geometry.dispose();
+    moonSphere.geometry = new THREE.SphereGeometry(moonSize, 32, 32);
+
+    // Update Moon's orbit path
+    const newMoonCurve = new THREE.EllipseCurve(0, 0, moonOrbit, moonOrbit, 0, 2 * Math.PI, true);
+    const newMoonPoints = newMoonCurve.getPoints(1000);
+    moonOrbitGeometry.setFromPoints(newMoonPoints);
+    moonPoints = newMoonPoints;
+    earthRevIndex = 0;
+    moonRevIndex = 0;
+}
+
 
 // realism (distance + size) setup
-if(realism){
-    sunSize = sunSizeR;
-    earthSize = earthSizeR;
-    earthOrbit = earthOrbitR;
-    moonSize = moonSizeR;
-    moonOrbit = moonOrbitR;
-}
-else{
-    sunSize = sunSizeF;
-    earthSize = earthSizeF;
-    earthOrbit = earthOrbitF;
-    moonSize = moonSizeF;
-    moonOrbit = moonOrbitF;
-}
+
 //PLANETS
 
 const sunGeometry = new THREE.SphereGeometry(sunSize, 32, 32);
@@ -93,6 +139,7 @@ const sunMaterial = new THREE.MeshStandardMaterial({
 const sunSphere = new THREE.Mesh(sunGeometry, sunMaterial);
 sunSphere.position.set(0, 0, 0);
 scene.add(sunSphere); // Add separately from sunLight
+
 
 // earthSphere setup
 const earthGeometry = new THREE.SphereGeometry(earthSize, 32, 32);
@@ -111,7 +158,7 @@ scene.add(earthSphere);
 
 const moonGeometry = new THREE.SphereGeometry(moonSize, 32, 32);
 const moonMaterial = new THREE.MeshStandardMaterial({
-    color: 0x747575,
+    color: 0x757575,
     roughness: 1,
     metalness: 0.1
 });
@@ -121,7 +168,7 @@ moonSphere.receiveShadow = true;
 
 // Create an elliptical orbit path for the earth
 const earthCurve = new THREE.EllipseCurve(0, 0, earthOrbit, earthOrbit, 0, 2 * Math.PI, true);
-const earthPoints = earthCurve.getPoints(10000);
+let earthPoints = earthCurve.getPoints(10000);
 const earthOrbitGeometry = new THREE.BufferGeometry().setFromPoints(earthPoints);
 const earthOrbitMaterial = new THREE.LineBasicMaterial({ color: 0xc8c8c8 });
 const earthCurveObject = new THREE.Line(earthOrbitGeometry, earthOrbitMaterial);
@@ -129,7 +176,7 @@ earthCurveObject.rotation.x = Math.PI / 2;
 scene.add(earthCurveObject);
 
 const moonCurve = new THREE.EllipseCurve(0, 0, moonOrbit, moonOrbit, 0, 2 * Math.PI, true);
-const moonPoints = moonCurve.getPoints(1000);
+let moonPoints = moonCurve.getPoints(1000);
 const moonOrbitGeometry = new THREE.BufferGeometry().setFromPoints(moonPoints);
 const moonOrbitMaterial = new THREE.LineBasicMaterial({ color: 0xc8c8c8});
 const moonCurveObject = new THREE.Line(moonOrbitGeometry, moonOrbitMaterial);
@@ -164,5 +211,5 @@ function animate() {
     composer.render();
     controls.update();
 }
-
+realismToggle();
 animate();
