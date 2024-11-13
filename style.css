@@ -15,3 +15,10 @@ body{
     display:inline;
     position: absolute;
 }
+#lookAtEarthButton{
+    margin: 0;
+    padding: 0;
+    top: 6%;
+    display:inline;
+    position: absolute;
+}

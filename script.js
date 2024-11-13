@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+import TWEEN from 'https://cdn.jsdelivr.net/npm/@tweenjs/tween.js@18.6.4/dist/tween.esm.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/RenderPass.js';
@@ -35,8 +36,8 @@ composer.addPass(ssaaPass);
 const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
     1.5, // Bloom intensity
-    1.4, // Bloom radius
-    0.85 // Bloom threshold
+    1, // Bloom radius
+    0.9 // Bloom threshold
 );
 composer.addPass(bloomPass);
 
@@ -66,12 +67,12 @@ sunLight.shadow.camera.near = 1;
 sunLight.shadow.camera.far = 5000;
 
 // sunSphere setup
-let realism = false;
+let realism = true;
 let sunSize, sunSizeF = 200, sunSizeR = 109;
 let earthSize, earthSizeF = 100, earthSizeR = 1;
 let earthOrbit, earthOrbitF = 2000, earthOrbitR = 93000;
-let moonSize, moonSizeF = 30, moonSizeR = 0.25;
-let moonOrbit, moonOrbitF = 300, moonOrbitR = 384;
+let moonSize, moonSizeF = 30, moonSizeR = 0.273;
+let moonOrbit, moonOrbitF = 300, moonOrbitR = 30;
 
 function realismToggle() {
     realism = !realism;
@@ -83,7 +84,7 @@ function realismToggle() {
         earthOrbit = earthOrbitR;
         moonSize = moonSizeR;
         moonOrbit = moonOrbitR;
-        camera.position.set(0, 5000, 200000);
+        camera.position.set(0, 50000, 200000);
         camera.far = 500000;
     } else {
         sunSize = sunSizeF;
@@ -202,11 +203,87 @@ function moonRevolution(){
     moonRevIndex = (moonRevIndex + 1) % moonPoints.length;
 }
 
+document.getElementById("lookAtEarthButton").addEventListener("click", toggleEarthView);
+let earthView = false;
+let followEarth = false;
+
+function toggleEarthView() {
+    earthView = !earthView;
+    
+    if (earthView) {
+        followEarth = true;
+        
+        // Smoothly zoom and initially look at Earth
+        if (realism) {
+            // Dramatically reduce distance to Earth while viewing it
+            const distanceToEarth = earthSizeR * 1; // Much closer to see the 1-unit Earth
+            
+            // Calculate offset position relative to Earth's current position
+            const offsetPosition = new THREE.Vector3(
+                earthSphere.position.x,
+                earthSphere.position.y + distanceToEarth,
+                earthSphere.position.z + distanceToEarth
+            );
+
+            // Narrow FOV for more zoom
+            camera.fov = 20; // Reduced FOV acts like a telescope
+            camera.near = 0.1; // Allow very close viewing
+            camera.far = earthOrbitR * 2;
+            camera.updateProjectionMatrix();
+            
+            new TWEEN.Tween(camera.position)
+                .to(offsetPosition, 1000)
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .start();
+        } else {
+            // Non-realistic mode stays the same
+            const targetPosition = new THREE.Vector3(
+                earthSphere.position.x,
+                earthSphere.position.y + 500,
+                earthSphere.position.z + 500
+            );
+            
+            new TWEEN.Tween(camera.position)
+                .to(targetPosition, 1000)
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .start();
+        }
+    
+    } else {
+        followEarth = false;
+        
+        // Reset FOV and camera position when going back to overview
+        camera.fov = 45; // Reset to original FOV
+        camera.near = 1;
+        camera.far = realism ? 500000 : 50000;
+        camera.updateProjectionMatrix();
+        
+        const defaultPosition = realism ? new THREE.Vector3(0, 50000, 200000) : new THREE.Vector3(0, 1000, 4000);
+        const defaultTarget = new THREE.Vector3(0, 0, 0);
+        
+        new TWEEN.Tween(camera.position)
+            .to(defaultPosition, 2000)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
+
+        new TWEEN.Tween(controls.target)
+            .to(defaultTarget, 2000)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onUpdate(() => controls.update())
+            .start();
+    }
+}
+
+
 function animate() {
     requestAnimationFrame(animate);
-
+    TWEEN.update();
     earthRevolution();
     moonRevolution();
+    if (followEarth) {
+        controls.target.copy(earthSphere.position);
+        controls.update();
+    }
     sunSphere.rotation.y += 0.002; // Add sun rotation for effect
     composer.render();
     controls.update();
