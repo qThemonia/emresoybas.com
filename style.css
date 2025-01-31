@@ -38,12 +38,14 @@ html, body {
     display: inline;
     margin: 0;
     padding: 0;
+    pointer-events: inherit;
   }
   
   /* The blinking cursor */
   #cursor {
     display: inline-block;
     margin-left: 2px;
+    pointer-events: none;
   }
   .cursorBlink{
     animation: blink 1s steps(1, start) infinite;

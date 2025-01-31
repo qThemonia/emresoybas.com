@@ -5,6 +5,7 @@
     import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/UnrealBloomPass.js';
     import { SSAARenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/SSAARenderPass.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
 
 
     // ========== [ Three.js Scene Setup ] ==========
@@ -33,7 +34,7 @@
     camera.lookAt(0, 0, 0);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.autoRotate = false;
+    controls.autoRotate = true;
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
     controls.enableDamping = true;
@@ -137,7 +138,7 @@
     // Sun
     const sunGeometry = new THREE.SphereGeometry(sunSize, 32, 32);
     const sunMaterial = new THREE.MeshStandardMaterial({
-    color: 0x858500,
+    color: 0xffff00,
     emissive: 0xffff00,
     emissiveIntensity: 2.5,
     transparent: true,
@@ -239,14 +240,6 @@
         }
         typing();
       }
-    // ========== [ Animate ] ==========
-    function animate() {
-    requestAnimationFrame(animate);
-    TWEEN.update();
-    revolutions();
-    sunSphere.rotation.y += 0.002;
-    composer.render();
-    }
 
     // Start off in realism mode
     realismToggle();
@@ -315,7 +308,9 @@ window.addEventListener('DOMContentLoaded', () => {
   
       // 2) Type line #1 (cursor is initially next to titleLine1 in HTML)
       typeWriter('titleLine1', "It's Emre.", 100, () => {
-  
+        setTimeout(() =>{
+
+
         // 3) Move the cursor to line #2
         const line2 = document.getElementById('titleLine2');
         line2.appendChild(document.getElementById('cursor'));
@@ -325,6 +320,7 @@ window.addEventListener('DOMContentLoaded', () => {
           // Maybe do something after the second line is done
           document.getElementById("cursor").classList.add("cursorBlink");
         });
+    }, 1500);
       });
   
     }, 2500);
@@ -386,5 +382,194 @@ window.addEventListener('DOMContentLoaded', () => {
         //   window.location.href = 'portfolio.html';
         // }, 2000);
     }
+
+    const sunPosition = new THREE.Vector3(0, 0, 0); // Assuming sun is at the origin
+    const restrictedRadius = 2000; // Define a radius around the sun as the restricted zone
     
-    animate();
+    function isInRestrictedZone(objectPosition) {
+        const vectorToObject = new THREE.Vector3().subVectors(objectPosition, sunPosition);
+        const angleWithCamera = vectorToObject.angleTo(camera.getWorldDirection(new THREE.Vector3()));
+    
+        // Check if the object is within the restricted radius and angle
+        const distanceToSun = vectorToObject.length();
+        return distanceToSun < restrictedRadius && angleWithCamera < Math.PI / 6; // 30-degree cone
+    }
+    
+    function repositionObject(objectPosition) {
+        const vectorFromSun = new THREE.Vector3().subVectors(objectPosition, sunPosition).normalize();
+        const safeDistance = restrictedRadius + 100; // Move outside the restricted radius
+        return new THREE.Vector3().addVectors(sunPosition, vectorFromSun.multiplyScalar(safeDistance));
+    }
+    
+
+    let tardis, dalek;
+/*
+    // Load the TARDIS
+    const loader = new GLTFLoader();
+    loader.load('./rss/tardis/scene.gltf', function (gltf) {
+        tardis = gltf.scene;
+        tardis.scale.set(30, 30, 30); // Adjust the size
+        tardis.position.set(0, 1000, 0); // Position it somewhere visible
+        tardis.castShadow = true;
+        tardis.receiveShadow = true;
+        scene.add(tardis);
+        zipTardis();
+    }, undefined, function (error) {
+        console.error("Error loading TARDIS model:", error);
+    });
+   */ 
+// Dalek Entry and Walk, Then Face Camera
+// Create a directional light behind the camera to illuminate the Dalek
+const dalekLight = new THREE.DirectionalLight(0xffffff, 1); // (color, intensity)
+scene.add(dalekLight);
+
+// Ensure the light follows the camera, shining in the direction of the Dalek
+function updateDalekLight() {
+    dalekLight.position.copy(camera.position); // Light stays behind the camera
+    dalekLight.target.position.set(dalek.position.x, dalek.position.y, dalek.position.z);
+    dalekLight.target.updateMatrixWorld();
+}
+(dalekLight);
+
+function enterDalek() {
+    if (!dalek) return;
+
+    // Position Dalek **just off-screen** to the right
+    const startX = 500; // Slightly off-screen right
+    const startY = 650; // Low position, near the camera's height
+    const startZ = 3500; // Very close to the camera
+
+    dalek.position.set(startX, startY, startZ);
+    dalek.visible = true;
+
+    // Compute the original rotation (facing left)
+    const originalRotationY = Math.atan2(-1000 - startX, 3500 - startZ);
+    dalek.rotation.set(0, originalRotationY, 0); // Ensure level rotation
+
+    // Move Dalek toward `x = 0`
+    new TWEEN.Tween(dalek.position)
+        .to({ x: 0, y: startY, z: startZ }, 5000) // Move toward center
+        .onUpdate(updateDalekLight) // Keep lighting the Dalek
+        .onComplete(() => {
+            // Compute the Y-axis rotation to face the camera (ignoring x and z)
+            const lookAtY = Math.atan2(camera.position.x - dalek.position.x, camera.position.z - dalek.position.z);
+
+            // Smoothly rotate toward the camera without tilting
+            new TWEEN.Tween(dalek.rotation)
+                .to({ y: lookAtY }, 2000) // Rotate smoothly over 2s
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .onComplete(() => {
+                    // Subtle tilt upwards (looking slightly up)
+                    new TWEEN.Tween(dalek.rotation)
+                        .to({ x: -0.3 }, 1500) // Slight upward tilt
+                        .easing(TWEEN.Easing.Quadratic.InOut)
+                        .onComplete(() => {
+                            // Hold the tilt for a moment
+                            setTimeout(() => {
+                                // Tilt back down to normal
+                                new TWEEN.Tween(dalek.rotation)
+                                    .to({ x: 0 }, 1500)
+                                    .easing(TWEEN.Easing.Quadratic.InOut)
+                                    .onComplete(() => {
+                                        // Smoothly rotate back to original direction
+                                        new TWEEN.Tween(dalek.rotation)
+                                            .to({ y: originalRotationY }, 2000)
+                                            .easing(TWEEN.Easing.Quadratic.InOut)
+                                            .onComplete(() => {
+                                                // Continue moving left
+                                                new TWEEN.Tween(dalek.position)
+                                                    .to({ x: -500, y: startY, z: startZ }, 10000) // Continue moving off-screen
+                                                    .onUpdate(updateDalekLight) // Keep lighting the Dalek
+                                                    .onComplete(() => {
+                                                        dalek.visible = false; // Hide when off-screen
+
+                                                        // Wait a short time, then restart the movement
+                                                        setTimeout(enterDalek, 1000);
+                                                    })
+                                                    .start();
+                                            })
+                                            .start();
+                                    })
+                                    .start();
+                            }, 1500); // Hold the tilt for 1 second before tilting back
+                        })
+                        .start();
+                })
+                .start();
+        })
+        .start();
+}
+
+// Load the Dalek
+const dalekLoader = new GLTFLoader();
+dalekLoader.load('./rss/dalek/scene.gltf', function (gltf) {
+    dalek = gltf.scene;
+    dalek.scale.set(100, 100, 100); // Adjust Dalek size
+    dalek.castShadow = true;
+    dalek.receiveShadow = true;
+    dalek.visible = false; // Start invisible until it enters
+    scene.add(dalek);
+
+    // Start the Dalek entrance sequence
+    enterDalek();
+}, undefined, function (error) {
+    console.error("Error loading Dalek model:", error);
+});
+
+/*
+// TARDIS Movement with Spin Correction
+function zipTardis() {
+    if (!tardis) return;
+
+        const rangeX = 1000;
+        const rangeY = 500;
+        const rangeZ = 500;
+
+        let randomX = 1000 + Math.random() * rangeX;
+        let randomY = 800 + Math.random() * rangeY;
+        let randomZ = -1000 + Math.random() * rangeZ;
+
+        const targetPosition = new THREE.Vector3(randomX, randomY, randomZ);
+        if (isInRestrictedZone(targetPosition)) {
+            const safePosition = repositionObject(targetPosition);
+            randomX = safePosition.x;
+            randomY = safePosition.y;
+            randomZ = safePosition.z;
+        }
+
+        // Smooth TARDIS movement
+        new TWEEN.Tween(tardis.position)
+            .to({ x: randomX, y: randomY, z: randomZ }, 1500)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onComplete(() => setTimeout(zipTardis, 500))
+            .start();
+}
+
+let rotationFrames = 0; // Track how many frames have passed
+let rotationDirection = -0.005; // Start rotating downward
+*/
+function animate() {
+    requestAnimationFrame(animate);
+    TWEEN.update();
+    revolutions();
+    sunSphere.rotation.y += 0.007;
+
+   /* if (tardis) {
+        // Apply rotation
+        tardis.rotation.x += rotationDirection;
+        tardis.rotation.y += 0.05; // Keep normal spinning
+
+        // Count frames
+        rotationFrames++;
+
+        // After 157 frames (or however long it takes to reach upside down), reverse rotation
+        if (rotationFrames >= 200) {
+            rotationDirection *= -1; // Reverse spin direction
+            rotationFrames = 0; // Reset frame counter
+        }
+    }
+*/
+    composer.render();
+}
+
+animate();

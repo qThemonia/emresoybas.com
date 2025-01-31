@@ -1,0 +1,11 @@
+Model Information:
+* title:	TARDIS
+* source:	https://sketchfab.com/3d-models/tardis-576b10bd7fb64af987c4f59e3ba475cd
+* author:	Andrewsha (https://sketchfab.com/andrewsha)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "TARDIS" (https://sketchfab.com/3d-models/tardis-576b10bd7fb64af987c4f59e3ba475cd) by Andrewsha (https://sketchfab.com/andrewsha) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
