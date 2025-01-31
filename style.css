@@ -1,17 +1,70 @@
-body{
-    margin: 0;
-    background-color: white;
-}
-#bloomToggleButton{
+html, body {
     margin: 0;
     padding: 0;
-    display:inline;
+    overflow: hidden;
+    background-color: black;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* The canvas can fade behind the text if you want */
+  canvas {
     position: absolute;
-}
-#realismToggleButton{
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: block;
+    opacity: 0;
+    transition: opacity 3s ease-in-out;
+  }
+  
+  /* #introText is above the canvas, starts hidden via display: none */
+  #introText {
+    z-index: 2;
+    display: none;
+    position: absolute;
+    top: 20px; /* position as you like */
+    left: 20px;
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+    font-size: 96px;
+    letter-spacing: 5px;
+    pointer-events: none;
     margin: 0;
     padding: 0;
-    top: 3%;
-    display:inline;
-    position: absolute;
-}
+  }
+  
+  /* The typed text lines */
+  #titleLine1, #titleLine2 {
+    display: inline;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* The blinking cursor */
+  #cursor {
+    display: inline-block;
+    margin-left: 2px;
+  }
+  .cursorBlink{
+    animation: blink 1s steps(1, start) infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+  }
+  
+  /* The sun splash overlay if you still do that */
+  #sunSplash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    width: 0px;
+    height: 0px;
+    transform: scale(0);
+    transform-origin: center center;
+    z-index: 9999;
+    pointer-events: none;
+    transition: transform 2s ease;
+  }
+  
