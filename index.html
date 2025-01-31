@@ -1,25 +1,37 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Emre Soybas</title>
-        <link rel="stylesheet" href="style.css"> 
-        <link rel="apple-touch-icon" sizes="180x180" href="rss/apple-touch-icon.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="rss/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="rss/favicon-16x16.png">
-        <link rel="manifest" href="rss/site.webmanifest">
-        <script type="importmap">
-            {
-              "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@v0.169.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@v0.169.0/examples/jsm/"
-              }
-            }
-          </script>
-    </head>
-    <body>
-      <button id="bloomToggleButton">Toggle Bloom</button>
-      <button id="realismToggleButton">Toggle Realism</button>
+  <head>
+    <title>Emre Soybas</title>
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="apple-touch-icon" sizes="180x180" href="rss/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="rss/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="rss/favicon-16x16.png">
+    <link rel="manifest" href="rss/site.webmanifest">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@v0.169.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@v0.169.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- 
+      Two separate line containers + a cursor 
+      We'll put a <br> in between them for spacing 
+    -->
+    <div id="introText">
+      <span id="titleLine1"></span><span id="cursor">|</span>
+      <br>
+      <span id="titleLine2"></span>
+    </div>
+
+    <div id="sunSplash"></div> <!-- For your sun click splash -->
+
+    <!-- jQuery, if needed -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Your main JS -->
     <script type="module" src="script.js"></script>
-    </body>
+  </body>
 </html>
