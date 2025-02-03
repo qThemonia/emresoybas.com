@@ -1,0 +1,92 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: black;
+}
+
+/* The canvas beneath */
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: block;
+  opacity: 0;
+  transition: opacity 3s ease-in-out;
+}
+
+/* Intro text above the canvas */
+#introText {
+  z-index: 2;
+  display: none;
+  position: absolute;
+  top: 5%;
+  left: 15%;
+  color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+  font-size: 96px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 3px;
+  pointer-events: none;
+  user-select: none;
+}
+#titleLine1, #titleLine2 {
+  display: inline;
+
+}
+#emre{
+  z-index: 11;
+  opacity: 0;
+  transition: opacity 1.2s cubic-bezier(1,0.6,1,0.7);
+  position: absolute;
+  top: 5%;
+  left: 32.7%;
+  color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+  font-size: 96px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 3px;
+  pointer-events: none;
+  user-select: none;
+}
+#cursor {
+  display: inline-block;
+  margin-left: 2px;
+  pointer-events: none;
+}
+.cursorBlink {
+  animation: blink 1s steps(1, start) infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+#sunSplash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  width: 0px;
+  height: 0px;
+  transform: scale(0);
+  transform-origin: center center;
+  z-index: 10;
+  pointer-events: none;
+  /* Add background color transition */
+  background-color: #ffff00;
+  transition: transform 3s ease, background-color 1.5s ease;
+}
+
+#splashOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1;
+}
