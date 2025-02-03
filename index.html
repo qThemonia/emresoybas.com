@@ -1,69 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>My Portfolio</title>
-    <!-- Inline critical CSS: background and cover -->
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #ffd700; /* Yellow background */
+    <title>Emre Soybas</title>
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="apple-touch-icon" sizes="180x180" href="rss/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="rss/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="rss/favicon-16x16.png">
+    <link rel="manifest" href="rss/site.webmanifest">
+    <link rel="prefetch" href="stageTwoIndex.html">
+    <link rel="prefetch" href="stageTwoStyle.css">
+    <link rel="prefetch" href="stageTwoScript.js">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@v0.169.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@v0.169.0/examples/jsm/"
+        }
       }
-      /* Full-screen cover element to mask any flash while loading */
-      #cover {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ffd700;
-        z-index: 9999;
-        transition: opacity 0.5s ease;
-      }
-    </style>
-    <!-- Link to external stylesheet -->
-    <link rel="stylesheet" href="style.css" />
-    <!-- Optional: Prefetch script for faster loading -->
-    <link rel="prefetch" href="script.js" />
+    </script>
   </head>
   <body>
-    <!-- Cover element -->
-    <div id="cover"></div>
+    <!-- 
+      Two separate line containers + a cursor 
+      We'll put a <br> in between them for spacing 
+    -->
+    <div id="introText">
+      <span id="titleLine1"></span><span id="cursor">|</span>
+      <br>
+      <span id="titleLine2"></span>
+    </div>
+    <div id="emre">Emre Soybas</div>
 
-    <!-- Main Portfolio Content -->
-    <header>
-      <h1>Welcome to My Portfolio</h1>
-    </header>
-    <main>
-      <section>
-        <p>
-          Explore my work, read my projects, and get to know my creative journey.
-        </p>
-        <!-- Add your portfolio sections or components here -->
-      </section>
-    </main>
-
-    <!-- Link to main JavaScript file -->
-    <script src="script.js"></script>
-    <!-- Remove the cover after everything loads -->
-    <script>
-      window.addEventListener("load", () => {
-        // Check if the splash flag was set by the intro (solar) page
-        if (localStorage.getItem("splashShown")) {
-          const cover = document.getElementById("cover");
-          cover.style.opacity = "0";
-          setTimeout(() => {
-            cover.remove();
-            localStorage.removeItem("splashShown");
-          }, 500); // Duration should match the CSS transition time
-        } else {
-          // In case the flag isn’t set, remove cover immediately.
-          document.getElementById("cover").remove();
-        }
-      });
-    </script>
+    <div id="sunSplash">
+      <div id="splashOverlay"></div>
+    </div>
+    
+    <!-- jQuery, if needed -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Your main JS -->
+    <script type="module" src="script.js"></script>
   </body>
 </html>
