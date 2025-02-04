@@ -38,7 +38,7 @@ canvas {
 #emre{
   z-index: 11;
   opacity: 0;
-  transition: opacity 1.2s cubic-bezier(1,0.6,1,0.7);
+  transition: opacity 1.2s cubic-bezier(1,0.5,1,0.9);
   position: absolute;
   top: 5%;
   left: 32.7%;
@@ -76,7 +76,7 @@ canvas {
   pointer-events: none;
   /* Add background color transition */
   background-color: #ffff00;
-  transition: transform 3s ease, background-color 1.5s ease;
+  transition: transform 2.5s ease, background-color 2.5s ease;
 }
 
 #splashOverlay {

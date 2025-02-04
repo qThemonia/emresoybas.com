@@ -388,22 +388,35 @@
     });
     
     splash.offsetWidth;  // Force reflow
-    splash.style.transform = 'scale(1)';
-    splash.style.backgroundColor = '#000000';
 
+    requestAnimationFrame(() => {
+        splash.style.transform = 'scale(1)';
+        splash.style.backgroundColor = '#000000';
+    });
         // 8. Handle completion
         splash.addEventListener('transitionend', (event) => {
-          // Only proceed if it's the transform transition that ended
-          if (event.propertyName === 'transform') {
-            const overlay = document.getElementById('splashOverlay');
-            overlay.style.opacity = '1';
-        
-            overlay.addEventListener('transitionend', () => {
-              localStorage.setItem('splashShown', 'true');
-              window.location.href = 'stageTwoIndex.html';
-            }, { once: true });
-          }
-        }, { once: true });
+            console.log("Trans");
+            if (event.propertyName === 'transform') {
+            console.log("Trans2");
+              const overlay = document.getElementById('splashOverlay');
+              overlay.style.opacity = '1';
+              // Ensure transitions are complete
+              Promise.all(
+                [splash, overlay].map(el => 
+                  new Promise(resolve => {
+                    const onTransitionEnd = () => {
+                      el.removeEventListener('transitionend', onTransitionEnd);
+                      resolve();
+                    };
+                    el.addEventListener('transitionend', onTransitionEnd);
+                  })
+                )
+              ).then(() => {
+                localStorage.setItem('splashShown', 'true');
+                window.location.href = 'stageTwoIndex.html';
+              });
+            }
+          });
     }
     const sunPosition = new THREE.Vector3(0, 0, 0); // Assuming sun is at the origin
     const restrictedRadius = 2000; // Define a radius around the sun as the restricted zone
