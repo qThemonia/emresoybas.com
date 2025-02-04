@@ -6,12 +6,6 @@
     <title>My Portfolio</title>
     <!-- Inline critical CSS: background and cover -->
     <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #ffd700; /* Yellow background */
-      }
       /* Full-screen cover element to mask any flash while loading */
       #cover {
         position: fixed;
@@ -19,35 +13,24 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: #ffd700;
+        background-color: black;
         z-index: 9999;
         transition: opacity 0.5s ease;
       }
     </style>
     <!-- Link to external stylesheet -->
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="stageTwoStyle.css" />
     <!-- Optional: Prefetch script for faster loading -->
-    <link rel="prefetch" href="script.js" />
+    <link rel="prefetch" href="stageTwoScript.js" />
   </head>
   <body>
     <!-- Cover element -->
     <div id="cover"></div>
 
-    <!-- Main Portfolio Content -->
-    <header>
-      <h1>Welcome to My Portfolio</h1>
-    </header>
-    <main>
-      <section>
-        <p>
-          Explore my work, read my projects, and get to know my creative journey.
-        </p>
-        <!-- Add your portfolio sections or components here -->
-      </section>
-    </main>
+    <div id="name">Emre Soybas</div>
 
     <!-- Link to main JavaScript file -->
-    <script src="script.js"></script>
+    <script src="stageTwoScript.js"></script>
     <!-- Remove the cover after everything loads -->
     <script>
       window.addEventListener("load", () => {
