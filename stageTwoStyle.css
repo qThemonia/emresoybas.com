@@ -1,24 +1,14 @@
 /* style.css for main portfolio page */
 
-/* Ensure body styling is consistent */
 body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    color: #333;
-    background-color: #ffd700; /* Yellow background for consistency */
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* Header styling */
-  header {
-    background-color: #222;
-    color: #fff;
-    padding: 1rem;
-    text-align: center;
-  }
-  
-  
-#name{
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #333;
+  background-color: #ffd700;
+  margin: 0;
+  padding: 0;
+}
+
+#name {
   z-index: 11;
   opacity: 0;
   transition: opacity 1.2s cubic-bezier(1,0.8,1,0.7);
@@ -34,15 +24,19 @@ body {
   user-select: none;
 }
 
-  /* Main content styling */
-  main {
-    padding: 2rem;
-  }
-  
-  /* Example section styling */
-  section {
-    margin-bottom: 2rem;
-  }
-  
-  /* Add additional styles as needed */
-  
+/* The #cover style is now in the HTML <style> so it can fade out. 
+   But you can move that here if you'd like:
+
+#cover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: black;
+  z-index: 9999;
+  opacity: 1; 
+  transition: opacity 0.5s ease;
+}
+
+*/
