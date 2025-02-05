@@ -431,6 +431,7 @@
     }
 */
     let dalek;
+    let dalekLight;
 /*
     // Load the TARDIS
     const loader = new GLTFLoader();
@@ -448,18 +449,6 @@
    */ 
 // Dalek Entry and Walk, Then Face Camera
 // Create a directional light behind the camera to illuminate the Dalek
-const dalekLight = new THREE.DirectionalLight(0xffffff, 1); // (color, intensity)
-dalekLight.layers.set(1);
-dalekLight.target.layers.set(1);
-scene.add(dalekLight);
-
-// Ensure the light follows the camera, shining in the direction of the Dalek
-dalekLight.position.copy(camera.position);
-function updateDalekLight() {
- // Light stays behind the camera
-    dalekLight.target.position.set(dalek.position.x, dalek.position.y, dalek.position.z);
-    dalekLight.target.updateMatrixWorld();
-}
 
 function enterDalek() {
     if (!dalek) return;
@@ -550,23 +539,35 @@ function enterDalek() {
         })
         .start();
 }
-
-// Load the Dalek
 const dalekLoader = new GLTFLoader();
 dalekLoader.load('./rss/dalek/scene.gltf', function (gltf) {
     dalek = gltf.scene;
-    dalek.scale.set(100, 100, 100); // Adjust Dalek size
+    dalek.scale.set(100, 100, 100);
     dalek.castShadow = true;
     dalek.receiveShadow = true;
-    dalek.visible = false; // Start invisible until it enters
-    dalek.layers.enable(1);
+    dalek.visible = false;
     scene.add(dalek);
+
+    // Assign to the global variable instead of creating a new local one.
+    dalekLight = new THREE.SpotLight(0xff0000, 2, 30000, Math.PI / 6, 0.3, 1);
+    dalekLight.castShadow = true;
+    scene.add(dalekLight);
+    dalekLight.target = dalek;
+    scene.add(dalekLight.target);
+    dalekLight.position.copy(camera.position);
 
     // Start the Dalek entrance sequence
     enterDalek();
 }, undefined, function (error) {
     console.error("Error loading Dalek model:", error);
 });
+
+function updateDalekLight() {
+    if (!dalekLight || !dalek) return; // Add safety check
+    dalekLight.position.copy(camera.position);
+    dalekLight.target.position.set(dalek.position.x, dalek.position.y, dalek.position.z);
+    dalekLight.target.updateMatrixWorld();
+}
 
 /*
 // TARDIS Movement with Spin Correction
