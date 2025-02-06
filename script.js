@@ -49,7 +49,6 @@
     const ssaaPass = new SSAARenderPass(scene, camera);
     ssaaPass.sampleLevel = 3;
     composer.addPass(ssaaPass);
-    camera.layers.enable(1);
 
     const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
@@ -160,7 +159,6 @@
     const earthSphere = new THREE.Mesh(earthGeometry, earthMaterial);
     earthSphere.castShadow = true;
     earthSphere.receiveShadow = true;
-    earthSphere.layers.disable(1);
     scene.add(earthSphere);
 
     // Moon
@@ -173,7 +171,6 @@
     const moonSphere = new THREE.Mesh(moonGeometry, moonMaterial);
     moonSphere.castShadow = true;
     moonSphere.receiveShadow = true;
-    moonSphere.layers.disable(1);
 
     // ========== [ Orbits ] ==========
     // Earth orbit
@@ -431,7 +428,6 @@
     }
 */
     let dalek;
-    let dalekLight;
 /*
     // Load the TARDIS
     const loader = new GLTFLoader();
@@ -468,7 +464,6 @@ function enterDalek() {
     // Move Dalek toward `x = 0`
     new TWEEN.Tween(dalek.position)
         .to({ x: 0, y: startY, z: startZ }, 3000) // Move toward center
-        .onUpdate(updateDalekLight) // Keep lighting the Dalek
         .onComplete(() => {
             // Compute the Y-axis rotation to face the camera (ignoring x and z)
             const lookAtY = Math.atan2(camera.position.x - dalek.position.x, camera.position.z - dalek.position.z);
@@ -519,7 +514,6 @@ function enterDalek() {
                                                 // Continue moving left
                                                 new TWEEN.Tween(dalek.position)
                                                     .to({ x: -500, y: startY, z: startZ }, 4000) // Continue moving off-screen
-                                                    .onUpdate(updateDalekLight) // Keep lighting the Dalek
                                                     .onComplete(() => {
                                                         dalek.visible = false; // Hide when off-screen
 
@@ -543,32 +537,21 @@ const dalekLoader = new GLTFLoader();
 dalekLoader.load('./rss/dalek/scene.gltf', function (gltf) {
     dalek = gltf.scene;
     dalek.scale.set(100, 100, 100);
-    dalek.castShadow = true;
-    dalek.receiveShadow = true;
     dalek.visible = false;
     scene.add(dalek);
-
     // Assign to the global variable instead of creating a new local one.
-    dalekLight = new THREE.SpotLight(0xff0000, 2, 30000, Math.PI / 6, 0.3, 1);
-    dalekLight.castShadow = true;
-    scene.add(dalekLight);
-    dalekLight.target = dalek;
-    scene.add(dalekLight.target);
-    dalekLight.position.copy(camera.position);
 
     // Start the Dalek entrance sequence
     enterDalek();
 }, undefined, function (error) {
     console.error("Error loading Dalek model:", error);
 });
-
-function updateDalekLight() {
-    if (!dalekLight || !dalek) return; // Add safety check
-    dalekLight.position.copy(camera.position);
-    dalekLight.target.position.set(dalek.position.x, dalek.position.y, dalek.position.z);
-    dalekLight.target.updateMatrixWorld();
-}
-
+let dalekLight = new THREE.PointLight(0xffffff, 1.5, 4000, 0);
+dalekLight.position.set(0,0,0);
+dalekLight.position.x = camera.position.x;
+dalekLight.position.y = camera.position.y;
+dalekLight.position.z = camera.position.z;
+scene.add(dalekLight);
 /*
 // TARDIS Movement with Spin Correction
 function zipTardis() {

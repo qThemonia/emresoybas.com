@@ -1183,6 +1183,10 @@
       "name": "Cube"
     },
     {
+      "mesh": 0,
+      "name": "Cube_BricksDragfacedRunning008_8K_0"
+    },
+    {
       "children": [
         6
       ],
@@ -1217,7 +1221,8 @@
         13,
         14,
         15,
-        16
+        16,
+        17
       ],
       "matrix": [
         0.9999999403953552,

@@ -10,8 +10,8 @@ let buildingLoaded = false;
 // Track if rocket is fully landed
 const animationParams = {
     rocketLanded: false,
-    landingHeight: 2,
-    landingSpeed: 0.05
+    landingHeight: 80,
+    landingSpeed: 0.3
 };
 
 // Camera follow toggle
@@ -66,8 +66,8 @@ function initScene() {
                 node.receiveShadow = true;
             }
         });
-        building.scale.set(10, 10, 10);
-        building.rotation.x = Math.PI / 2;
+        building.scale.set(1, 1, 1);
+        building.position.set(-550,0,0);
         scene.add(building);
 
         buildingLoaded = true;
@@ -90,8 +90,7 @@ function initScene() {
                 node.receiveShadow = true;
             }
         });
-        rocket.scale.set(0.2, 0.2, 0.2);
-        rocket.position.set(0, 10, 0);
+        rocket.position.set(50, 150, -20);
         scene.add(rocket);
 
         rocketLoaded = true;
@@ -130,50 +129,54 @@ function checkAllAssetsLoaded() {
     }
 }
 
+function descendRocket(){
+  
+    // If we haven't landed yet, descend the rocket
+    if (rocket && !animationParams.rocketLanded) {
+      if (rocket.position.y > animationParams.landingHeight) {
+          rocket.position.y -= animationParams.landingSpeed;
+      } else {
+          animationParams.rocketLanded = true;
+          // Once landed, stop following (if desired)
+          followRocket = true; 
+          // Or keep followRocket = true if you want the camera to remain locked
+      }
+  }
+
+  // If we are supposed to follow the rocket, override controls
+  if (rocket && followRocket) {
+      // Example offset: behind and above the rocket
+      const offset = new THREE.Vector3(0, 15, 35); 
+      
+      // Get rocket world position
+      const rocketPos = new THREE.Vector3();
+      rocket.getWorldPosition(rocketPos);
+      
+      // Desired camera position is rocket position plus offset
+      const desiredCameraPos = rocketPos.clone().add(offset);
+      console.log(desiredCameraPos);
+
+      // Smoothly interpolate camera position for a less rigid motion
+      camera.position.lerp(desiredCameraPos, 0.1);
+
+      // Always look at the rocket
+      camera.lookAt(rocketPos);
+
+      // Optionally disable OrbitControls to prevent user from interfering
+      controls.enabled = true;
+  } else {
+      // If not following rocket, or once rocket is landed
+      // you can re-enable controls
+      controls.enabled = true;
+      // Update controls normally
+      controls.update();
+  }
+
+}
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
-
-    // If we haven't landed yet, descend the rocket
-    if (rocket && !animationParams.rocketLanded) {
-        if (rocket.position.y > animationParams.landingHeight) {
-            rocket.position.y -= animationParams.landingSpeed;
-        } else {
-            animationParams.rocketLanded = true;
-            // Once landed, stop following (if desired)
-            followRocket = false; 
-            // Or keep followRocket = true if you want the camera to remain locked
-        }
-    }
-
-    // If we are supposed to follow the rocket, override controls
-    if (rocket && followRocket) {
-        // Example offset: behind and above the rocket
-        const offset = new THREE.Vector3(0, 5, 15); 
-        
-        // Get rocket world position
-        const rocketPos = new THREE.Vector3();
-        rocket.getWorldPosition(rocketPos);
-        
-        // Desired camera position is rocket position plus offset
-        const desiredCameraPos = rocketPos.clone().add(offset);
-
-        // Smoothly interpolate camera position for a less rigid motion
-        camera.position.lerp(desiredCameraPos, 0.1);
-
-        // Always look at the rocket
-        camera.lookAt(rocketPos);
-
-        // Optionally disable OrbitControls to prevent user from interfering
-        controls.enabled = false;
-    } else {
-        // If not following rocket, or once rocket is landed
-        // you can re-enable controls
-        controls.enabled = true;
-        // Update controls normally
-        controls.update();
-    }
-
+    descendRocket();
     renderer.render(scene, camera);
 }
 
