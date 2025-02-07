@@ -6,6 +6,7 @@ let scene, camera, renderer, controls;
 let rocket, building;
 let rocketLoaded = false;
 let buildingLoaded = false;
+let particles;
 
 // Track if rocket is fully landed
 const animationParams = {
@@ -16,6 +17,67 @@ const animationParams = {
 
 // Camera follow toggle
 let followRocket = true;
+
+function createThrusterEffect() {
+  // Create particle geometry
+  const particleCount = 1000;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+
+  // Create particle material
+  const material = new THREE.PointsMaterial({
+      size: 0.5,
+      transparent: true,
+      opacity: 0.6,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending
+  });
+
+  // Initialize particles with random positions
+  for (let i = 0; i < particleCount * 3; i += 3) {
+      // Random position within a cone shape
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * 0.5;
+      positions[i] = Math.cos(angle) * radius;     // x
+      positions[i + 1] = -(Math.random() * 2);     // y (downward)
+      positions[i + 2] = Math.sin(angle) * radius; // z
+
+      // Color gradient from white to orange
+      colors[i] = 1;     // R
+      colors[i + 1] = Math.random() * 0.5 + 0.5; // G
+      colors[i + 2] = 0; // B
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  particles = new THREE.Points(geometry, material);
+  return particles;
+}
+
+function updateThrusterEffect() {
+  if (!particles || animationParams.rocketLanded) return;
+
+  const positions = particles.geometry.attributes.position.array;
+  const particleCount = positions.length / 3;
+
+  for (let i = 0; i < particleCount * 3; i += 3) {
+      // Reset particles that have moved too far down
+      if (positions[i + 1] < -3) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = Math.random() * 0.5;
+          positions[i] = Math.cos(angle) * radius;
+          positions[i + 1] = 0;
+          positions[i + 2] = Math.sin(angle) * radius;
+      }
+      
+      // Move particles downward
+      positions[i + 1] -= 0.1;
+  }
+
+  particles.geometry.attributes.position.needsUpdate = true;
+}
 
 function initScene() {
     // Scene setup
@@ -93,6 +155,10 @@ function initScene() {
         rocket.position.set(50, 150, -20);
         scene.add(rocket);
 
+        const thruster = createThrusterEffect();
+            rocket.add(thruster);
+            thruster.position.set(-12, -2, 0); // Adjust position relative to rocket
+
         rocketLoaded = true;
         checkAllAssetsLoaded();
       },
@@ -135,6 +201,7 @@ function descendRocket(){
     if (rocket && !animationParams.rocketLanded) {
       if (rocket.position.y > animationParams.landingHeight) {
           rocket.position.y -= animationParams.landingSpeed;
+          updateThrusterEffect();
       } else {
           animationParams.rocketLanded = true;
           // Once landed, stop following (if desired)
@@ -145,26 +212,23 @@ function descendRocket(){
 
   // If we are supposed to follow the rocket, override controls
   if (rocket && followRocket) {
-      // Example offset: behind and above the rocket
-      const offset = new THREE.Vector3(0, 15, 35); 
-      
-      // Get rocket world position
-      const rocketPos = new THREE.Vector3();
-      rocket.getWorldPosition(rocketPos);
-      
-      // Desired camera position is rocket position plus offset
-      const desiredCameraPos = rocketPos.clone().add(offset);
-      console.log(desiredCameraPos);
+    // Get rocket position
+    const rocketPos = new THREE.Vector3();
+    rocket.getWorldPosition(rocketPos);
+    
+    // Set camera position to be in front of rocket
+    const cameraOffset = new THREE.Vector3(-12, 10, 25);
+    const desiredCameraPos = rocketPos.clone().add(cameraOffset);
+    camera.position.lerp(desiredCameraPos, 0.1);
 
-      // Smoothly interpolate camera position for a less rigid motion
-      camera.position.lerp(desiredCameraPos, 0.1);
-
-      // Always look at the rocket
-      camera.lookAt(rocketPos);
-
-      // Optionally disable OrbitControls to prevent user from interfering
-      controls.enabled = true;
-  } else {
+    // Create a point in front of the camera to look at
+    // This is key - we're creating a point that's straight ahead of the camera
+    const lookAtPoint = camera.position.clone();
+    lookAtPoint.z -= 100; // Look 100 units forward
+    
+    // Make camera look at this point instead of the rocket
+    camera.lookAt(lookAtPoint);
+} else {
       // If not following rocket, or once rocket is landed
       // you can re-enable controls
       controls.enabled = true;
