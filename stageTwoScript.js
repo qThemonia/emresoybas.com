@@ -6,7 +6,7 @@ let scene, camera, renderer, controls;
 let rocket, building;
 let rocketLoaded = false;
 let buildingLoaded = false;
-let particles;
+let particles, smokeParticles;
 
 // Track if rocket is fully landed
 const animationParams = {
@@ -20,14 +20,14 @@ let followRocket = true;
 
 function createThrusterEffect() {
   // Create particle geometry
-  const particleCount = 1000;
+  const particleCount = 100;
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
   const colors = new Float32Array(particleCount * 3);
 
   // Create particle material
   const material = new THREE.PointsMaterial({
-      size: 0.5,
+      size: 1,
       transparent: true,
       opacity: 0.6,
       vertexColors: true,
@@ -77,6 +77,90 @@ function updateThrusterEffect() {
   }
 
   particles.geometry.attributes.position.needsUpdate = true;
+}
+function createSmokeEffect() {
+  const particleCount = 200;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const scales = new Float32Array(particleCount);
+  const opacities = new Float32Array(particleCount);
+
+  // Create a sprite texture for smoke particles
+  const sprite = new THREE.TextureLoader().load(
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAMUSURBVFiFvddvqJ1jGAfwz3POtmOsNcLqnMQfkRBRJEmlCSWUf0VeKKX8K0qkvBElQhFeUIqUvPCCylukSFKUPxV5QfmXzDnHMY12tjOb7ezu57q8uO/Tfs9z9jx7Opdz1dNTz3Pfz/f+Xs91X/d93c/B+rELS7EaS7AQ8zATp+A4jmIvvsf3+A5f4wBeHs8NW/A4vkR/nfoKj+G08Yx8Cr7D4Sm0up7Dc2PNeAX2VUaYi4twGRZhAS7EmViEOViBAcFhR/AD3sNz+HAkwDx8NmLANbgHd+BSzEjAdqGHg/gS72AffsJfOIBf8Sf6hZ3qC4KOwmZ0cS1m4+ms3xEBe4QpXY+HhOltAy04jF14C2/iHXyPYyP4zcLluBo34Xph54rA64XjuXnYhd14Dq8JRzNR9Au79Dgexk1Yilki8LvxBF4SdnGy6OJJrMVC4QTW4kO0JwEyFu3Gm7gDMwQBt+MF/DOFwHU9h9sxVxBwB17FvzMInGsvrsPpmC9M+5szDJrrc9yImViIV3B0FgBzfYJVaAlH+scsAuf6UDjatnDWc0oHD+AsQcCnEwRO5T+Iq4SpfbVmzN9YgSZOxhsTBM7DvxIz0cA5wnmtDQGAXViFhiDgkwkCJ+KPsCwDPpEe+CgePy7s2nNYhuuxDPsF5WwX1HEhVgyPNUvHbwkvlD76BPU7B7fgLmHKm/inoIMDwgvpgOCog4IDv8cefIpP8DH24klhV+/FzViDC3C2oJSzhCmehQZW4n7hWXXwwBii0RIc0RHs1xFEYlAQkyEMYT8G4/VQPDcY+w3Gc0Px3qEY51AcYyiO2Y/nvngMx3sOVX7X/tD4GG/jNqwVpriJFk6M14fjr9lxnBGPZ8Uys3J/zMKpgug0MA9nCwv4gfDm+w0b8fD/HHhIEIZuvDbxeHw4m9IXhWdxm/DKbMeyZ8Sy5+LceH1u/N2OZdqxfif27cZrg3HMgRh7KF7rj7H6MSu9Qcn4BwF+s5dexYNwAAAAAElFTkSuQmCC'
+  );
+
+  // Initialize particles with random positions
+  for (let i = 0; i < particleCount * 3; i += 3) {
+      positions[i] = (Math.random() - 0.5) * 2;      // x
+      positions[i + 1] = Math.random() * -2;         // y
+      positions[i + 2] = (Math.random() - 0.5) * 2;  // z
+      
+      // Initialize scales and opacities
+      const index = i / 3;
+      scales[index] = Math.random() * 0.5 + 0.5;
+      opacities[index] = Math.random() * 0.5;
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('scale', new THREE.BufferAttribute(scales, 1));
+  geometry.setAttribute('opacity', new THREE.BufferAttribute(opacities, 1));
+
+  // Create smoke material
+  const material = new THREE.PointsMaterial({
+      size: 2,
+      map: sprite,
+      transparent: true,
+      opacity: 0.5,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexColors: false
+  });
+
+  smokeParticles = new THREE.Points(geometry, material);
+  return smokeParticles;
+}
+
+function updateSmokeEffect() {
+  if (!smokeParticles) return;
+
+  const positions = smokeParticles.geometry.attributes.position.array;
+  const scales = smokeParticles.geometry.attributes.scale.array;
+  const opacities = smokeParticles.geometry.attributes.opacity.array;
+  const particleCount = positions.length / 3;
+
+  // Get height ratio for smoke intensity
+  const heightRatio = (rocket.position.y - animationParams.landingHeight) / 
+                     (150 - animationParams.landingHeight); // 150 is initial height
+  
+  for (let i = 0; i < particleCount * 3; i += 3) {
+      // Move particles outward and upward
+      positions[i] *= 1.02;     // Spread X
+      positions[i + 2] *= 1.02; // Spread Z
+      positions[i + 1] += 0.1;  // Rise Y
+
+      const index = i / 3;
+      
+      // Fade out particles as they rise
+      opacities[index] -= 0.01;
+      scales[index] += 0.01;
+
+      // Reset particles that have faded out
+      if (opacities[index] <= 0) {
+          // More spread as rocket gets closer to ground
+          const spread = 1 + (1 - heightRatio) * 2;
+          positions[i] = (Math.random() - 0.5) * spread;
+          positions[i + 1] = Math.random() * -2;
+          positions[i + 2] = (Math.random() - 0.5) * spread;
+          
+          scales[index] = Math.random() * 0.5 + 0.5;
+          opacities[index] = Math.random() * 0.5 * (1 - heightRatio);
+      }
+  }
+
+  smokeParticles.geometry.attributes.position.needsUpdate = true;
+  smokeParticles.geometry.attributes.scale.needsUpdate = true;
+  smokeParticles.geometry.attributes.opacity.needsUpdate = true;
 }
 
 function initScene() {
@@ -159,6 +243,10 @@ function initScene() {
             rocket.add(thruster);
             thruster.position.set(-12, -2, 0); // Adjust position relative to rocket
 
+            const smoke = createSmokeEffect();
+            rocket.add(smoke);
+            smoke.position.set(-12, -2, 0);
+
         rocketLoaded = true;
         checkAllAssetsLoaded();
       },
@@ -202,6 +290,7 @@ function descendRocket(){
       if (rocket.position.y > animationParams.landingHeight) {
           rocket.position.y -= animationParams.landingSpeed;
           updateThrusterEffect();
+          updateSmokeEffect();
       } else {
           animationParams.rocketLanded = true;
           // Once landed, stop following (if desired)
