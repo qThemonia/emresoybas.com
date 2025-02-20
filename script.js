@@ -16,6 +16,8 @@ class CelestialBody {
     this.geometry = new THREE.SphereGeometry(size, segments, segments);
     this.material = new THREE.MeshStandardMaterial(materialOptions);
     this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh.castShadow = true;
+    this.mesh.receiveShadow = true;
   }
 }
 
@@ -63,7 +65,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // --- Camera ---
   const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 50000);
-  camera.position.set(0, 1000, 4000);
+  camera.position.set(0, 2000, 5000);
   camera.lookAt(0, 0, 0);
 
   // --- Controls ---
@@ -107,10 +109,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
   sun.mesh.position.set(0, 0, 0);
+  sun.mesh.castShadow = false;
   scene.add(sun.mesh);
 
   // --- Sun Lighting ---
-  const sunLight = new THREE.PointLight(0xffffff, 500000, 250000, 1.5);
+  const sunLight = new THREE.PointLight(0xffffff, 200000, 250000, 1.5);
   sunLight.position.set(0, 0, 0);
   sunLight.castShadow = true;
   scene.add(sunLight);
@@ -120,31 +123,161 @@ window.addEventListener('DOMContentLoaded', () => {
   sunLight.shadow.camera.far = 5000;
 
   // --- Earth ---
-  const earthSize = 100;
-  const earthOrbitRadius = 2000;
   const earth = new CelestialBody({
-    size: earthSize,
+    size: 100,
     materialOptions: { color: 0x00FF00, roughness: 1, metalness: 0.8 }
   });
   // Note: The Earth's position will be updated along its orbit.
   scene.add(earth.mesh);
-  const earthOrbit = new Orbit(earthOrbitRadius, 10000, 0xc8c8c8);
+  const earthOrbit = new Orbit(1500, 10000, 0xc8c8c8);
   scene.add(earthOrbit.line);
 
   // --- Moon ---
-  const moonSize = 30;
-  const moonOrbitRadius = 300;
   const moon = new CelestialBody({
-    size: moonSize,
+    size: 30,
     materialOptions: { color: 0x757575, roughness: 1, metalness: 0.1 }
   });
-  const moonOrbit = new Orbit(moonOrbitRadius, 1000, 0xc8c8c8);
+  const moonOrbit = new Orbit(300, 1000, 0xc8c8c8);
   // Group the Moon and its orbit so that the Moon orbits Earth
   const moonGroup = new THREE.Group();
   moonGroup.add(moonOrbit.line);
   moonGroup.add(moon.mesh);
   // Attach the Moon group to the Earth so its orbit is relative to Earth
   earth.mesh.add(moonGroup);
+
+  // --- Mars ---
+  const mars = new CelestialBody({
+    size: 70,
+    materialOptions: { color: 0xFF0000, roughness: 1, metalness: 0.8 }
+  });
+  // Note: Mars' position will be updated along its orbit.
+  scene.add(mars.mesh);
+  const marsOrbit = new Orbit(2000, 3000, 0xc8c8c8);
+  scene.add(marsOrbit.line);
+
+  // --- Saturn ---
+const saturn = new CelestialBody({
+  size: 105,
+  materialOptions: { 
+    color: 0xF4D03F,
+    roughness: 0.9, 
+    metalness: 0.2 
+  }
+});
+
+// --- Saturn's Detailed Particle Rings ---
+function createSaturnRings() {
+  // Create a container for all ring components
+  const ringsGroup = new THREE.Group();
+  
+  // Define ring parameters
+  const ringParams = [
+    { inner: 145, outer: 170, particles: 1000, color: 0xD4C4A8 }, // Inner ring (Crepe ring)
+    { inner: 180, outer: 250, particles: 2000, color: 0xE8DDCB }, // Middle ring (B ring - densest)
+    { inner: 255, outer: 290, particles: 1200, color: 0xDDCBB8 }  // Outer ring (A ring)
+  ];
+  
+  // Create each ring as particle system
+  ringParams.forEach(ring => {
+    // Create particle geometry
+    const ringParticles = new THREE.BufferGeometry();
+    const positions = new Float32Array(ring.particles * 3);
+    const colors = new Float32Array(ring.particles * 3);
+    const sizes = new Float32Array(ring.particles);
+    
+    // Fill with particles in a ring pattern
+    for (let i = 0; i < ring.particles; i++) {
+      // Calculate random angle
+      const angle = Math.random() * Math.PI * 2;
+      
+      // Calculate random distance between inner and outer radius
+      const distance = ring.inner + Math.random() * (ring.outer - ring.inner);
+      
+      // Calculate position (flat on XZ plane)
+      const x = Math.cos(angle) * distance;
+      const y = (Math.random() - 0.5) * 2.5; // Slight thickness (±2.5 units)
+      const z = Math.sin(angle) * distance;
+      
+      // Set particle position
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+      
+      // Add color variation
+      const color = new THREE.Color(ring.color);
+      // Add slight color variation
+      color.r += (Math.random() - 0.5) * 0.1;
+      color.g += (Math.random() - 0.5) * 0.1;
+      color.b += (Math.random() - 0.5) * 0.1;
+      
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+      
+      // Vary particle sizes - larger in denser regions
+      if (distance < (ring.inner + (ring.outer - ring.inner) * 0.3) || 
+          distance > (ring.inner + (ring.outer - ring.inner) * 0.7)) {
+        // Smaller particles at edges
+        sizes[i] = 0.5 + Math.random() * 1.5;
+      } else {
+        // Larger particles in middle
+        sizes[i] = 1.5 + Math.random() * 2.5;
+      }
+    }
+    
+    // Add attributes to geometry
+    ringParticles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    ringParticles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    ringParticles.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    
+    // Create point material
+    const material = new THREE.PointsMaterial({
+      size: 2,
+      sizeAttenuation: true,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false
+    });
+    
+    // Create the points system
+    const particleSystem = new THREE.Points(ringParticles, material);
+    ringsGroup.add(particleSystem);
+  });
+  
+  // Add ring divisions - darker gaps between rings (Cassini Division)
+  const divisionGeometry = new THREE.RingGeometry(250, 255, 120, 1);
+  divisionGeometry.rotateX(Math.PI / 2);
+  const divisionMaterial = new THREE.MeshBasicMaterial({ 
+    color: 0x000000, 
+    transparent: true, 
+    opacity: 0.7,
+    side: THREE.DoubleSide 
+  });
+  const division = new THREE.Mesh(divisionGeometry, divisionMaterial);
+  ringsGroup.add(division);
+  
+  // Apply realistic tilt angle to entire ring system (26.73 degrees)
+  ringsGroup.rotation.x = Math.PI * 0.1;
+  
+  return ringsGroup;
+}
+
+
+// Create Saturn's orbit
+const saturnOrbit = new Orbit(3000, 40000, 0xc8c8c8);
+scene.add(saturnOrbit.line);
+
+// Create the detailed rings
+const saturnRings = createSaturnRings();
+
+// Create Saturn system and add components
+const saturnSystem = new THREE.Group();
+saturnSystem.add(saturn.mesh);
+saturnSystem.add(saturnRings);
+
+// Add the Saturn system to the scene
+scene.add(saturnSystem);
 
   //
   // Star Field
@@ -206,7 +339,9 @@ let hoverAnimationInProgress = false;
 function setupPlanetHoverAnimations() {
   const planetButtons = document.querySelectorAll('[data-planet]');
   const planetViews = {
-    earth: { object: earth.mesh }
+    earth: { object: earth.mesh },
+    mars: { object: mars.mesh },
+    saturn: { object: saturn.mesh }
     // add more planets as needed
   };
 
@@ -351,7 +486,7 @@ function setupUI(hoverControls) {
   const backButton = document.querySelector('.back-button');
   const planetButtons = document.querySelectorAll('[data-planet]');
 
-  const defaultCameraPos = { x: 0, y: 1000, z: 4000 };
+  const defaultCameraPos = { x: 0, y: 2000, z: 5000 };
 
   const planetViews = {
     earth: {
@@ -359,28 +494,40 @@ function setupUI(hoverControls) {
       distance: 130,
       height: 30,
       angle: Math.PI * 0.6
+    },
+    mars: {
+      object: mars.mesh,
+      distance: 100,
+      height: 10,
+      angle: Math.PI * 0.6
+    },
+    saturn: {
+      object: saturn.mesh,
+      distance: 300, // Larger distance for a better view
+      height: 80,
+      angle: Math.PI * 0.6
     }
+
     // add more planet configurations as needed
   };
 
   // Flag for click-based transitions
   let clickAnimationInProgress = false;
-  
   function calculateDarkSidePosition(planetMesh) {
     const planetPosition = new THREE.Vector3();
     planetMesh.getWorldPosition(planetPosition);
-
+  
     const sunToPlanet = planetPosition.clone().sub(new THREE.Vector3(0, 0, 0));
     const cameraOffset = sunToPlanet.clone()
       .normalize()
       .multiplyScalar(currentCameraDistance.distance);
-
+  
     const cameraPosition = planetPosition.clone().add(cameraOffset);
     cameraPosition.y += currentCameraDistance.height;
-
+  
     return {
       cameraPos: cameraPosition,
-      targetPos: new THREE.Vector3(0, 0, 0)  // look at the sun
+      targetPos: planetPosition.clone() // Initially look at the planet, not the sun
     };
   }
 
@@ -394,67 +541,79 @@ function setupUI(hoverControls) {
     hoverControls.updateOriginalTarget();
   }
 
-  function startTracking(planetConfig) {
-    if (clickAnimationInProgress) return;
-    clickAnimationInProgress = true;
-  
-    // Stop hover stuff
-    if (hoverAnimationInProgress && currentHoverTween) {
-      currentHoverTween.stop();
-      currentHoverTween = null;
-    }
-    hoverAnimationInProgress = false;
-  
-    isAnimationPaused = true;
-    controls.enabled = false;
-    trackedObject = planetConfig.object;
-    backButton.style.display = 'flex';
+  // Fix the startTracking function to handle Saturn properly
+function startTracking(planetConfig) {
+  if (clickAnimationInProgress) return;
+  clickAnimationInProgress = true;
 
-    currentCameraDistance = {
-      distance: planetConfig.distance,
-      height: planetConfig.height
-    };
-    // This is the place we want to move the camera
-    const { cameraPos, targetPos } = calculateDarkSidePosition(trackedObject);
-    const planetPosition = trackedObject.position.clone();
-
-
-    // --- TWEEN #1: Move camera to the planet, while always looking at planet ---
-    new TWEEN.Tween(camera.position)
-      .to({
-        x: cameraPos.x,
-        y: cameraPos.y,
-        z: cameraPos.z
-      }, 2000)
-      .easing(TWEEN.Easing.Cubic.InOut)
-      .onUpdate(() => {
-        // Continually look at the planet so there's no pop.
-        camera.lookAt(planetPosition);
-        // If you want controls.target to match, do it here:
-        controls.target.copy(planetPosition);
-      })
-      .onComplete(() => {
-        // --- Optionally, TWEEN #2: after arrival, look back at the sun if you want ---
-        const lookTarget = planetPosition.clone();
-        new TWEEN.Tween(lookTarget)
-          .to({
-            x: targetPos.x,
-            y: targetPos.y,
-            z: targetPos.z
-          }, 1200)
-          .easing(TWEEN.Easing.Quadratic.InOut)
-          .onUpdate(() => {
-            controls.target.copy(lookTarget);
-            camera.lookAt(controls.target);
-          })
-          .onComplete(() => {
-            isTracking = true;
-            clickAnimationInProgress = false;
-          })
-          .start();
-      })
-      .start();
+  // Stop hover stuff
+  if (hoverAnimationInProgress && currentHoverTween) {
+    currentHoverTween.stop();
+    currentHoverTween = null;
   }
+  hoverAnimationInProgress = false;
+
+  isAnimationPaused = true;
+  controls.enabled = false;
+  trackedObject = planetConfig.object;
+  backButton.style.display = 'flex';
+
+  currentCameraDistance = {
+    distance: planetConfig.distance,
+    height: planetConfig.height
+  };
+  
+  // Critical fix: Get the world position of the planet for Saturn
+  const planetWorldPosition = new THREE.Vector3();
+  planetConfig.object.getWorldPosition(planetWorldPosition);
+  
+  // This is the place we want to move the camera
+  const { cameraPos, targetPos } = calculateDarkSidePosition(trackedObject);
+
+  // --- TWEEN #1: Move camera to the planet, while always looking at planet ---
+  new TWEEN.Tween(camera.position)
+    .to({
+      x: cameraPos.x,
+      y: cameraPos.y,
+      z: cameraPos.z
+    }, 2000)
+    .easing(TWEEN.Easing.Cubic.InOut)
+    .onUpdate(() => {
+      // Get the current world position for the planet each frame
+      const currentPlanetPosition = new THREE.Vector3();
+      trackedObject.getWorldPosition(currentPlanetPosition);
+      
+      // Continually look at the planet so there's no pop.
+      camera.lookAt(currentPlanetPosition);
+      // Update controls.target to match, do it here:
+      controls.target.copy(currentPlanetPosition);
+    })
+    .onComplete(() => {
+      // Get final planet position
+      const finalPlanetPosition = new THREE.Vector3();
+      trackedObject.getWorldPosition(finalPlanetPosition);
+      
+      // --- Optionally, TWEEN #2: after arrival, look back at the sun if you want ---
+      const lookTarget = finalPlanetPosition.clone();
+      new TWEEN.Tween(lookTarget)
+        .to({
+          x: targetPos.x,
+          y: targetPos.y,
+          z: targetPos.z
+        }, 1200)
+        .easing(TWEEN.Easing.Quadratic.InOut)
+        .onUpdate(() => {
+          controls.target.copy(lookTarget);
+          camera.lookAt(controls.target);
+        })
+        .onComplete(() => {
+          isTracking = true;
+          clickAnimationInProgress = false;
+        })
+        .start();
+    })
+    .start();
+}
 
   function stopTracking() {
     if (clickAnimationInProgress) return;
@@ -520,7 +679,15 @@ function animate() {
   if (!isAnimationPaused) {
     earthOrbit.updatePosition(earth.mesh);
     moonOrbit.updatePosition(moon.mesh);
+    marsOrbit.updatePosition(mars.mesh)
+    // Update Saturn's position using the orbit points
+    const saturnPos = saturnOrbit.points[saturnOrbit.revIndex];
+    saturnSystem.position.set(saturnPos.x, 0, saturnPos.y);
+    saturnOrbit.revIndex = (saturnOrbit.revIndex + 1) % saturnOrbit.points.length;
+
     sun.mesh.rotation.y += 0.007;
+    saturnRings.rotation.y += 0.002;
+
   }
 
   // Update camera tracking for clicked planet
