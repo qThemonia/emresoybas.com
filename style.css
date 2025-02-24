@@ -12,7 +12,6 @@ canvas {
   left: 0;
   z-index: 1;
   display: block;
-  opacity: 0;
   transition: opacity 3s ease-in-out;
 }
 .space-ui {
