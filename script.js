@@ -70,9 +70,6 @@ window.addEventListener('DOMContentLoaded', () => {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setSize(window.innerWidth, window.innerHeight);
-  // Optimize shadow maps
-  renderer.shadowMap.autoUpdate = false; // Don't update shadows every frame
-  renderer.shadowMap.needsUpdate = true; // But do update them once
   renderer.domElement.style.position = 'absolute';
   renderer.domElement.style.top = '0';
   renderer.domElement.style.left = '0';
@@ -83,8 +80,8 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // --- Camera ---
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 50000);
-  camera.position.set(0, 2000, 5000);
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100000);
+  camera.position.set(0, 2000, 5300);
   camera.lookAt(0, 0, 0);
 
   // --- Controls ---
@@ -184,35 +181,33 @@ const saturn = new CelestialBody({
   }
 });
 
-// --- Saturn's Detailed Particle Rings ---
+// --- Saturn's  Particle Rings ---
 function createSaturnRings() {
-  // Create a container for all ring components
+
   const ringsGroup = new THREE.Group();
   
-  // Define ring parameters
   const ringParams = [
-    { inner: 145, outer: 170, particles: 175, color: 0xD4C4A8 }, // Inner ring (Crepe ring)
-    { inner: 180, outer: 250, particles: 350, color: 0xE8DDCB }, // Middle ring (B ring - densest)
-    { inner: 255, outer: 290, particles: 200, color: 0xDDCBB8 }  // Outer ring (A ring)
+    { inner: 145, outer: 170, particles: 175, color: 0xD4C4A8 }, // Inner
+    { inner: 180, outer: 250, particles: 350, color: 0xE8DDCB }, // Middle
+    { inner: 255, outer: 290, particles: 200, color: 0xDDCBB8 }  // Outer
   ];
   
-  // Create each ring as particle system
   ringParams.forEach(ring => {
-    // Create particle geometry
+    // Particle geometry
     const ringParticles = new THREE.BufferGeometry();
     const positions = new Float32Array(ring.particles * 3);
     const colors = new Float32Array(ring.particles * 3);
     const sizes = new Float32Array(ring.particles);
     
-    // Fill with particles in a ring pattern
+    // Fill w/ particles in ring pattern
     for (let i = 0; i < ring.particles; i++) {
-      // Calculate random angle
+      
       const angle = Math.random() * Math.PI * 2;
       
-      // Calculate random distance between inner and outer radius
+      // Random distance between inner and outer radius
       const distance = ring.inner + Math.random() * (ring.outer - ring.inner);
       
-      // Calculate position (flat on XZ plane)
+      // rand pos (flat on XZ)
       const x = Math.cos(angle) * distance;
       const y = (Math.random() - 0.5) * 2.5; // Slight thickness (±2.5 units)
       const z = Math.sin(angle) * distance;
@@ -505,7 +500,7 @@ function setupUI(hoverControls) {
   const backButton = document.querySelector('.back-button');
   const planetButtons = document.querySelectorAll('[data-planet]');
 
-  const defaultCameraPos = { x: 0, y: 2000, z: 5000 };
+  const defaultCameraPos = { x: 0, y: 2000, z: 5300 };
 
   const planetViews = {
     earth: {
