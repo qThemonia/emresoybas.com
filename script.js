@@ -96,17 +96,29 @@ window.addEventListener('DOMContentLoaded', () => {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
 
+   // --- Post-processing Settings ---
+   let bloomEnabled = true;
+   let ssaaEnabled = true;
+
   // --- Composer with Postprocessing ---
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   const ssaaPass = new SSAARenderPass(scene, camera);
   ssaaPass.sampleLevel = 2;
+  ssaaPass.enabled = ssaaEnabled;
   composer.addPass(ssaaPass);
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
     1.5, 1.4, 0.85
   );
+  bloomPass.enabled = bloomEnabled;
   composer.addPass(bloomPass);
+
+   // Function to update post-processing settings
+   function updatePostProcessing() {
+    ssaaPass.enabled = ssaaEnabled;
+    bloomPass.enabled = bloomEnabled;
+  }
 
   //
   // Create the Celestial Bodies using our classes
@@ -133,8 +145,8 @@ window.addEventListener('DOMContentLoaded', () => {
   sunLight.position.set(0, 0, 0);
   sunLight.castShadow = true;
   scene.add(sunLight);
-  sunLight.shadow.mapSize.width = 500000;
-  sunLight.shadow.mapSize.height = 500000;
+  sunLight.shadow.mapSize.width = 10000;
+  sunLight.shadow.mapSize.height = 10000;
   sunLight.shadow.camera.near = 1;
   sunLight.shadow.camera.far = 5000;
 
@@ -337,6 +349,63 @@ scene.add(saturnSystem);
   }
   createStarField();
 
+  
+  //
+  // SETTINGS UI
+  //
+  function createSettingsUI() {
+    // Create container for settings buttons
+    const settingsContainer = document.createElement('div');
+    settingsContainer.className = 'settings-container';
+    document.body.appendChild(settingsContainer);
+
+    // Create Bloom toggle
+    const bloomToggle = document.createElement('button');
+    bloomToggle.className = 'space-button settings-button';
+    bloomToggle.textContent = 'Bloom: ON';
+    bloomToggle.addEventListener('click', () => {
+      bloomEnabled = !bloomEnabled;
+      bloomToggle.textContent = `Bloom: ${bloomEnabled ? 'ON' : 'OFF'}`;
+      updatePostProcessing();
+    });
+    settingsContainer.appendChild(bloomToggle);
+
+    // Create SSAA toggle
+    const ssaaToggle = document.createElement('button');
+    ssaaToggle.className = 'space-button settings-button';
+    ssaaToggle.textContent = 'SSAA: ON';
+    ssaaToggle.addEventListener('click', () => {
+      ssaaEnabled = !ssaaEnabled;
+      ssaaToggle.textContent = `SSAA: ${ssaaEnabled ? 'ON' : 'OFF'}`;
+      updatePostProcessing();
+    });
+    settingsContainer.appendChild(ssaaToggle);
+
+    // Add CSS for the settings UI
+    const style = document.createElement('style');
+    style.textContent = `
+      .settings-container {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 20;
+      }
+      
+      .settings-button {
+        min-width: 120px;
+        text-align: center;
+        font-size: 16px;
+        padding: 0.5rem 1rem;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Initialize settings UI
+  createSettingsUI();
 
 
   //
