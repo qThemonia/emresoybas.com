@@ -5,6 +5,7 @@ import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examp
 import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { SSAARenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/SSAARenderPass.js';
+import Stats from 'https://cdnjs.cloudflare.com/ajax/libs/stats.js/17/Stats.js';
 
 //
 // CLASS DEFINITIONS
@@ -49,16 +50,34 @@ class Orbit {
 // SCENE SETUP
 //
 
+  //
+  // FPS Counter
+  //
+  const stats = new Stats();
+  stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+  stats.dom.style.position = 'absolute';
+  stats.dom.style.top = '95%';
+  stats.dom.style.left = '0px';
+  stats.dom.style.zIndex = '100'; // Make sure it's above other elements
+  document.body.appendChild(stats.dom);
+
+
 window.addEventListener('DOMContentLoaded', () => {
+
   // --- Renderer ---
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setSize(window.innerWidth, window.innerHeight);
+  // Optimize shadow maps
+  renderer.shadowMap.autoUpdate = false; // Don't update shadows every frame
+  renderer.shadowMap.needsUpdate = true; // But do update them once
   renderer.domElement.style.position = 'absolute';
   renderer.domElement.style.top = '0';
   renderer.domElement.style.left = '0';
   document.body.appendChild(renderer.domElement);
+  
   requestAnimationFrame(() => {
     renderer.domElement.style.opacity = "1";
   });
@@ -84,7 +103,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   const ssaaPass = new SSAARenderPass(scene, camera);
-  ssaaPass.sampleLevel = 3;
+  ssaaPass.sampleLevel = 2;
   composer.addPass(ssaaPass);
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
@@ -172,9 +191,9 @@ function createSaturnRings() {
   
   // Define ring parameters
   const ringParams = [
-    { inner: 145, outer: 170, particles: 1000, color: 0xD4C4A8 }, // Inner ring (Crepe ring)
-    { inner: 180, outer: 250, particles: 2000, color: 0xE8DDCB }, // Middle ring (B ring - densest)
-    { inner: 255, outer: 290, particles: 1200, color: 0xDDCBB8 }  // Outer ring (A ring)
+    { inner: 145, outer: 170, particles: 175, color: 0xD4C4A8 }, // Inner ring (Crepe ring)
+    { inner: 180, outer: 250, particles: 350, color: 0xE8DDCB }, // Middle ring (B ring - densest)
+    { inner: 255, outer: 290, particles: 200, color: 0xDDCBB8 }  // Outer ring (A ring)
   ];
   
   // Create each ring as particle system
@@ -674,6 +693,7 @@ function startTracking(planetConfig) {
 
 function animate() {
   requestAnimationFrame(animate);
+  stats.begin();
   TWEEN.update();
   
   if (!isAnimationPaused) {
@@ -697,6 +717,7 @@ function animate() {
   hoverControls.updateHoverTracking();
   
   composer.render();
+  stats.end();
 }
 
 // Make sure to get the hover controls when setting up the UI
