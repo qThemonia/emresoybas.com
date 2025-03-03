@@ -11,6 +11,7 @@ import Stats from 'https://cdnjs.cloudflare.com/ajax/libs/stats.js/17/Stats.js';
 // CLASS DEFINITIONS
 //
 
+
 // Class to create a sphere (celestial body)
 class CelestialBody {
   constructor({ size, segments = 32, materialOptions = {} }) {
@@ -63,6 +64,7 @@ class Orbit {
 
 
 window.addEventListener('DOMContentLoaded', () => {
+  let simulationSpeed = 1; // Default: normal speed
 
   // --- Renderer ---
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -157,7 +159,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   // Note: The Earth's position will be updated along its orbit.
   scene.add(earth.mesh);
-  const earthOrbit = new Orbit(1500, 10000, 0xc8c8c8);
+  const earthOrbit = new Orbit(1700, 10000, 0xc8c8c8);
   scene.add(earthOrbit.line);
 
   // --- Moon ---
@@ -180,7 +182,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   // Note: Mars' position will be updated along its orbit.
   scene.add(mars.mesh);
-  const marsOrbit = new Orbit(2000, 3000, 0xc8c8c8);
+  const marsOrbit = new Orbit(1100, 3000, 0xc8c8c8);
   scene.add(marsOrbit.line);
 
   // --- Saturn ---
@@ -291,7 +293,7 @@ function createSaturnRings() {
 
 
 // Create Saturn's orbit
-const saturnOrbit = new Orbit(3000, 40000, 0xc8c8c8);
+const saturnOrbit = new Orbit(3500, 40000, 0xc8c8c8);
 scene.add(saturnOrbit.line);
 
 // Create the detailed rings
@@ -304,6 +306,233 @@ saturnSystem.add(saturnRings);
 
 // Add the Saturn system to the scene
 scene.add(saturnSystem);
+
+// **BinaryPlanetSystem Class**: Realistic chaotic binary system with gravitational dynamics
+class BinaryPlanetSystem {
+  constructor(sunDistance, avgBinaryDistance, revolutionSpeed) {
+    this.systemGroup = new THREE.Group();
+
+    // Physics constants
+    this.G = 1000;           // Gravitational constant (tuned for simulation scale)
+    this.m1 = 1;          // Mass of planet1
+    this.m2 = 1;          // Mass of planet2 (equal masses for symmetry, adjustable for chaos)
+    this.dt = 0.05;       // Time step for numerical integration
+
+    // Planet 1 (Blue)
+    this.planet1 = new CelestialBody({
+      size: 60,
+      materialOptions: { color: 0x3498db, roughness: 0.8, metalness: 0.3 }
+    });
+    this.planet1.mesh.position.set(100, 0, 0); // Initial position
+    this.planet1.velocity = new THREE.Vector3(0, 0, 1); // Initial velocity
+
+    // Planet 2 (Purple)
+    this.planet2 = new CelestialBody({
+      size: 45,
+      materialOptions: { color: 0x9b59b6, roughness: 0.7, metalness: 0.4 }
+    });
+    this.planet2.mesh.position.set(-100, 0, 0); // Initial position
+    this.planet2.velocity = new THREE.Vector3(0, 0, -1); // Initial velocity
+
+    // Add planets to the system group
+    this.systemGroup.add(this.planet1.mesh, this.planet2.mesh);
+
+    // Trail setup for visualizing chaotic paths
+    this.maxTrailPoints = 1000;
+    this.trailPositions1 = new Float32Array(this.maxTrailPoints * 3);
+    this.trailPositions2 = new Float32Array(this.maxTrailPoints * 3);
+    this.trailIndex = 0;
+    this.trailLength = 0;
+    this.trailDelay = 100; // Delay frames before starting trails
+    this.frameCount = 0;   // Frame counter
+    
+
+    // Initialize trails and orbit around the sun
+    this.createOrbitTrails();
+    this.createSunOrbit(sunDistance);
+  }
+  
+  // **CreateSunOrbit**: Defines the system's orbit around the sun
+  createSunOrbit(sunDistance) {
+    const sunEccentricity = 0; //temp 0
+    const curve = new THREE.EllipseCurve(
+      0, 0, // Center at (0, 0) instead of (sunEccentricity * sunDistance, 0)
+      sunDistance, sunDistance * (1 - sunEccentricity),
+      0, 2 * Math.PI,
+      false,
+      0
+    );
+    const points = curve.getPoints(20000);
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({ color: 0xc8c8c8 });
+    this.sunOrbit = {
+      line: new THREE.Line(geometry, material),
+      points,
+      revIndex: 0
+    };
+    this.sunOrbit.line.rotation.x = Math.PI / 2; // XZ plane
+  }
+
+  // **CreateOrbitTrails**: Sets up trails to visualize planet paths
+  createOrbitTrails() {
+    this.trailGeometry1 = new THREE.BufferGeometry();
+    this.trailGeometry2 = new THREE.BufferGeometry();
+    this.trailGeometry1.setAttribute('position', new THREE.BufferAttribute(this.trailPositions1, 3));
+    this.trailGeometry2.setAttribute('position', new THREE.BufferAttribute(this.trailPositions2, 3));
+
+    this.trailMaterial1 = new THREE.LineBasicMaterial({
+      color: 0x3498db,
+      transparent: true,
+      opacity: 0.4,
+      linewidth: 1
+    });
+    this.trailMaterial2 = new THREE.LineBasicMaterial({
+      color: 0x9b59b6,
+      transparent: true,
+      opacity: 0.4,
+      linewidth: 1
+    });
+
+    this.trail1 = new THREE.Line(this.trailGeometry1, this.trailMaterial1);
+    this.trail2 = new THREE.Line(this.trailGeometry2, this.trailMaterial2);
+
+    // Add trails to the scene (world space)
+    scene.add(this.trail1, this.trail2);
+  }
+
+  // **UpdateOrbitTrails**: Updates trail positions using a circular buffer
+  updateOrbitTrails() {
+    if (this.frameCount < this.trailDelay) {
+      this.frameCount++;
+      return;
+    }
+  
+    const pos1 = new THREE.Vector3();
+    const pos2 = new THREE.Vector3();
+    this.planet1.mesh.getWorldPosition(pos1);
+    this.planet2.mesh.getWorldPosition(pos2);
+  
+    const index = this.trailIndex * 3;
+    this.trailPositions1[index] = pos1.x;
+    this.trailPositions1[index + 1] = pos1.y;
+    this.trailPositions1[index + 2] = pos1.z;
+    this.trailPositions2[index] = pos2.x;
+    this.trailPositions2[index + 1] = pos2.y;
+    this.trailPositions2[index + 2] = pos2.z;
+  
+    this.trailIndex = (this.trailIndex + 1) % this.maxTrailPoints;
+    if (this.trailLength < this.maxTrailPoints) this.trailLength++;
+  
+    this.trailGeometry1.setDrawRange(0, this.trailLength);
+    this.trailGeometry2.setDrawRange(0, this.trailLength);
+    this.trailGeometry1.attributes.position.needsUpdate = true;
+    this.trailGeometry2.attributes.position.needsUpdate = true;
+  }
+  
+  calculateBinaryPosition(angle, planetNumber) {
+    // Calculate position with eccentricity, wobble, and perturbations
+    
+    // Apply current eccentricity
+    let distance = this.avgBinaryDistance * (1 - this.currentEccentricity * Math.cos(angle));
+    
+    // Apply wobble
+    distance += this.avgBinaryDistance * this.currentWobble * Math.sin(this.wobbleFrequency * angle);
+    
+    // Calculate base position
+    let x = Math.cos(angle) * distance;
+    let z = Math.sin(angle) * distance;
+    
+    // Force Y=0 to stay in XZ plane
+    let y = 0;
+  
+    // 3) Center of mass shift
+    if (planetNumber === 1) {
+      x *= (1 - this.massRatio);
+      z *= (1 - this.massRatio);
+    } else {
+      x *= -this.massRatio;
+      z *= -this.massRatio;
+    }
+    this.inclination = 0;
+    return { x, y, z };
+  }
+  
+  updateOrbitalParameters() {
+    // Update perturbation phase
+    this.perturbationPhase += 0.001;
+    if (this.perturbationPhase > Math.PI * 2) this.perturbationPhase -= Math.PI * 2;
+    
+    // Vary eccentricity over time
+    this.currentEccentricity = this.eccentricity + 0.05 * Math.sin(this.perturbationPhase);
+    
+    // Vary wobble over time
+    this.currentWobble = this.wobbleAmplitude * Math.sin(this.perturbationPhase * 2.7);
+    
+    // Slowly rotate the inclination direction
+    this.inclinationDirection += 0.0005;
+    
+    // Small random perturbations (chaotic element)
+    if (Math.random() < 0.01) {
+      this.currentEccentricity += (Math.random() - 0.5) * 0.02;
+      this.currentWobble += (Math.random() - 0.5) * 0.01;
+      
+      // Keep parameters in reasonable ranges
+      this.currentEccentricity = Math.max(0.05, Math.min(0.4, this.currentEccentricity));
+      this.currentWobble = Math.max(-0.2, Math.min(0.2, this.currentWobble));
+    }
+  }
+  
+  updateBinaryPositions(dt) {
+    const pos1 = this.planet1.mesh.position;
+    const pos2 = this.planet2.mesh.position;
+    const dx = pos2.x - pos1.x;
+    const dz = pos2.z - pos1.z;
+    const distance = Math.sqrt(dx * dx + dz * dz);
+
+    if (distance > 0) {
+        const forceMagnitude = this.G * this.m1 * this.m2 / (distance * distance);
+        const forceX = forceMagnitude * (dx / distance);
+        const forceZ = forceMagnitude * (dz / distance);
+
+        this.planet1.velocity.x += (forceX / this.m1) * dt;
+        this.planet1.velocity.z += (forceZ / this.m1) * dt;
+        this.planet2.velocity.x += (-forceX / this.m2) * dt;
+        this.planet2.velocity.z += (-forceZ / this.m2) * dt;
+    }
+
+    this.planet1.mesh.position.x += this.planet1.velocity.x * dt;
+    this.planet1.mesh.position.z += this.planet1.velocity.z * dt;
+    this.planet2.mesh.position.x += this.planet2.velocity.x * dt;
+    this.planet2.mesh.position.z += this.planet2.velocity.z * dt;
+
+    // Enforce XZ plane
+    this.planet1.mesh.position.y = 0;
+    this.planet2.mesh.position.y = 0;
+    this.planet1.velocity.y = 0;
+    this.planet2.velocity.y = 0;
+
+    // Update trails (if applicable)
+    this.updateOrbitTrails();
+
+    // Rotate planets, scaled by dt
+    this.planet1.mesh.rotation.y += 0.01 * dt / this.dt;
+    this.planet2.mesh.rotation.y += 0.008 * dt / this.dt;
+
+    // Update trails
+    this.updateOrbitTrails();
+
+    // Rotate planets for visual effect
+    this.planet1.mesh.rotation.y += 0.01;
+    this.planet2.mesh.rotation.y += 0.008;
+  }
+}
+
+// Create the binary planet system
+// Parameters: distance from sun, average distance between planets, revolution speed
+const binaryPlanets = new BinaryPlanetSystem(2500, 250, 0.005);
+scene.add(binaryPlanets.sunOrbit.line);
+scene.add(binaryPlanets.systemGroup);
+
 
   //
   // Star Field
@@ -381,6 +610,19 @@ scene.add(saturnSystem);
     });
     settingsContainer.appendChild(ssaaToggle);
 
+    const fastForwardToggle = document.createElement('button');
+    fastForwardToggle.className = 'space-button settings-button'; // Match your existing styling
+    fastForwardToggle.textContent = 'Fast Forward: OFF';
+    let isFastForward = false;
+
+    fastForwardToggle.addEventListener('click', () => {
+        isFastForward = !isFastForward;
+        simulationSpeed = isFastForward ? 10 : 1; // Toggle between 1x and 10x speed
+        fastForwardToggle.textContent = `Fast Forward: ${isFastForward ? 'ON' : 'OFF'}`;
+    });
+
+    settingsContainer.appendChild(fastForwardToggle);
+
     // Add CSS for the settings UI
     const style = document.createElement('style');
     style.textContent = `
@@ -424,7 +666,8 @@ function setupPlanetHoverAnimations() {
   const planetViews = {
     earth: { object: earth.mesh },
     mars: { object: mars.mesh },
-    saturn: { object: saturn.mesh }
+    saturn: { object: saturn.mesh },
+    binary: { object: binaryPlanets.systemGroup }
     // add more planets as needed
   };
 
@@ -589,8 +832,13 @@ function setupUI(hoverControls) {
       distance: 300, // Larger distance for a better view
       height: 80,
       angle: Math.PI * 0.6
-    }
-
+    },
+    binary: {
+      object: binaryPlanets.systemGroup,
+      distance: 400,
+      height: 100,
+      angle: Math.PI * 0.6
+}
     // add more planet configurations as needed
   };
 
@@ -760,19 +1008,36 @@ function animate() {
   stats.begin();
   TWEEN.update();
   
-  if (!isAnimationPaused) {
-    earthOrbit.updatePosition(earth.mesh);
-    moonOrbit.updatePosition(moon.mesh);
-    marsOrbit.updatePosition(mars.mesh)
-    // Update Saturn's position using the orbit points
+  if (!isAnimationPaused) { // Assuming you have a pause feature
+    // Update predefined orbits (e.g., Earth, Mars, etc.)
+    earthOrbit.revIndex = (earthOrbit.revIndex + simulationSpeed) % earthOrbit.points.length;
+    const earthPos = earthOrbit.points[earthOrbit.revIndex];
+    earth.mesh.position.set(earthPos.x, 0, earthPos.y);
+
+    moonOrbit.revIndex = (moonOrbit.revIndex + simulationSpeed) % moonOrbit.points.length;
+    const moonPos = moonOrbit.points[moonOrbit.revIndex];
+    moon.mesh.position.set(moonPos.x, 0, moonPos.y);
+
+    marsOrbit.revIndex = (marsOrbit.revIndex + simulationSpeed) % marsOrbit.points.length;
+    const marsPos = marsOrbit.points[marsOrbit.revIndex];
+    mars.mesh.position.set(marsPos.x, 0, marsPos.y);
+
+    saturnOrbit.revIndex = (saturnOrbit.revIndex + simulationSpeed) % saturnOrbit.points.length;
     const saturnPos = saturnOrbit.points[saturnOrbit.revIndex];
     saturnSystem.position.set(saturnPos.x, 0, saturnPos.y);
-    saturnOrbit.revIndex = (saturnOrbit.revIndex + 1) % saturnOrbit.points.length;
 
-    sun.mesh.rotation.y += 0.007;
-    saturnRings.rotation.y += 0.002;
+    // Update binary planet system
+    binaryPlanets.updateBinaryPositions(binaryPlanets.dt * simulationSpeed);
 
-  }
+    // Update binary system's solar orbit
+    binaryPlanets.sunOrbit.revIndex = (binaryPlanets.sunOrbit.revIndex + simulationSpeed) % binaryPlanets.sunOrbit.points.length;
+    const binaryPos = binaryPlanets.sunOrbit.points[binaryPlanets.sunOrbit.revIndex];
+    binaryPlanets.systemGroup.position.set(binaryPos.x, 0, binaryPos.y);
+
+    // Rotations (visual effects)
+    sun.mesh.rotation.y += 0.007 * simulationSpeed;
+    saturnRings.rotation.y += 0.002 * simulationSpeed;
+}
 
   // Update camera tracking for clicked planet
   updateCameraForTracking();
