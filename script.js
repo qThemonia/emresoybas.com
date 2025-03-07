@@ -47,6 +47,9 @@ class Orbit {
   }
 }
 
+let isSystemLocked = false;
+
+
 //
 // SCENE SETUP
 //
@@ -63,9 +66,27 @@ class Orbit {
   document.body.appendChild(stats.dom);
 
 
-window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('DOMContentLoaded', () => {
+    const introOverlay = document.querySelector('.intro-overlay');
+    const cosmicText = document.querySelector('.cosmic-text');
+    const name = "Emre Soybas";
+  
+    // Split the name into individual letters
+    cosmicText.innerHTML = name.split('').map((letter, i) => 
+      `<span style="animation-delay: ${i * 0.1}s">${letter}</span>`
+    ).join('');
+  
+    // Delay the solar system load until intro completes
+    setTimeout(() => {
+      introOverlay.classList.add('hidden');
+      initSolarSystem(); // Start the solar system after intro
+    }, 2500); // 2.5 seconds total (1s for text + 1.5s for fade)
+  });
+  
+  function initSolarSystem(){
   let simulationSpeed = 1; // Default: normal speed
 
+  
   // --- Renderer ---
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio
@@ -100,18 +121,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
    // --- Post-processing Settings ---
    let bloomEnabled = true;
-   let ssaaEnabled = true;
+   let ssaaEnabled = false;
+   let userQualityHighSet = false;
 
   // --- Composer with Postprocessing ---
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   const ssaaPass = new SSAARenderPass(scene, camera);
   ssaaPass.sampleLevel = 2;
-  ssaaPass.enabled = ssaaEnabled;
+  ssaaPass.enabled = false;
   composer.addPass(ssaaPass);
   const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    1.5, 1.4, 0.85
+    new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2), // Half resolution
+    1.5, 0.4, 0.85
   );
   bloomPass.enabled = bloomEnabled;
   composer.addPass(bloomPass);
@@ -313,33 +335,29 @@ class BinaryPlanetSystem {
     this.systemGroup = new THREE.Group();
 
     // Physics constants
-    this.G = 600;           // Further reduced for stability
+    this.G = 1000;           // Further reduced for stability
     this.m1 = 1;
     this.m2 = 1;
-    this.dt = 0.05;
+    this.dt = 0.15;
 
     // Planet 1 (Blue)
     this.planet1 = new CelestialBody({
       size: 60,
-      materialOptions: { color: 0x3498db, roughness: 0.8, metalness: 0.3 }
+      materialOptions: { color: 0x45f7f7, roughness: 0.8, metalness: 0.3 }
     });
 
     // Planet 2 (Purple)
     this.planet2 = new CelestialBody({
       size: 45,
-      materialOptions: { color: 0x9b59b6, roughness: 0.7, metalness: 0.4 }
+      materialOptions: { color: 0xFF00FF, roughness: 0.7, metalness: 0.4 }
     });
     this.planet1.mesh.position.set(avgBinaryDistance/3, 0, 0);
     this.planet2.mesh.position.set(-avgBinaryDistance/3, 0, 0);
     
     // Add slight asymmetry and more energy
-    const baseVelocity = Math.sqrt(800/avgBinaryDistance) * 0.7;
+    const baseVelocity = Math.sqrt(1680/avgBinaryDistance) * 0.7;
     this.planet1.velocity = new THREE.Vector3(0.15, 0, baseVelocity);
     this.planet2.velocity = new THREE.Vector3(-0.15, 0, -baseVelocity);
-    
-    // Optionally adjust the masses for more chaos
-    this.m1 = 1.0;
-    this.m2 = 0.8; // Different mass ratio creates more interesting orbits
 
     this.systemGroup.add(this.planet1.mesh, this.planet2.mesh);
 
@@ -353,7 +371,7 @@ class BinaryPlanetSystem {
     this.trailPositions2 = new Float32Array(this.maxTrailPoints * 3);
     this.trailIndex = 0;
     this.trailLength = 0;
-    this.trailDelay = 100;
+    this.trailDelay = 50;
     this.frameCount = 0;
 
     this.createOrbitTrails();
@@ -375,8 +393,8 @@ class BinaryPlanetSystem {
     this.trailGeometry1.setAttribute('position', new THREE.BufferAttribute(this.trailPositions1, 3));
     this.trailGeometry2.setAttribute('position', new THREE.BufferAttribute(this.trailPositions2, 3));
 
-    this.trailMaterial1 = new THREE.LineBasicMaterial({ color: 0x3498db, transparent: true, opacity: 0.4, linewidth: 1 });
-    this.trailMaterial2 = new THREE.LineBasicMaterial({ color: 0x9b59b6, transparent: true, opacity: 0.4, linewidth: 1 });
+    this.trailMaterial1 = new THREE.LineBasicMaterial({ color: 0x45f7f7, transparent: true, opacity: 0.4, linewidth: 1 });
+    this.trailMaterial2 = new THREE.LineBasicMaterial({ color: 0xFF00FF, transparent: true, opacity: 0.4, linewidth: 1 });
 
     this.trail1 = new THREE.Line(this.trailGeometry1, this.trailMaterial1);
     this.trail2 = new THREE.Line(this.trailGeometry2, this.trailMaterial2);
@@ -482,7 +500,7 @@ class BinaryPlanetSystem {
       this.planet2.velocity.multiplyScalar(dampingFactor);
       
       // Cap velocities more aggressively
-      const maxVelocity = 2.0;
+      const maxVelocity = 50.0;
       if (this.planet1.velocity.length() > maxVelocity) {
         this.planet1.velocity.normalize().multiplyScalar(maxVelocity);
       }
@@ -515,10 +533,12 @@ scene.add(binaryPlanets.systemGroup);
   // Star Field
   //
   function createStarField() {
-    const starCount = 20000;
+    // Use fewer stars for better performance
+    const starCount = 10000;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(starCount * 3);
     const colors = new Float32Array(starCount * 3);
+    const sizes = new Float32Array(starCount);
     const radius = 20000;
     
     for (let i = 0; i < starCount; i++) {
@@ -529,42 +549,65 @@ scene.add(binaryPlanets.systemGroup);
       const y = r * Math.sin(phi) * Math.sin(theta);
       const z = r * Math.cos(phi);
       
-      positions[i * 3]     = x;
+      positions[i * 3] = x;
       positions[i * 3 + 1] = y;
       positions[i * 3 + 2] = z;
       
       const color = new THREE.Color();
-      color.setHSL(Math.random(), 0.8, 0.7);
-      colors[i * 3]     = color.r;
+      color.setHSL(Math.random(), 0.5 + Math.random() * 0.3, 0.7);
+      colors[i * 3] = color.r;
       colors[i * 3 + 1] = color.g;
       colors[i * 3 + 2] = color.b;
+      
+      // Vary star sizes for more visual interest
+      sizes[i] = 1.5 + Math.random() * 1.5;
     }
     
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
     
-    const material = new THREE.PointsMaterial({
+    // Use a more efficient shader for the stars
+    const starMaterial = new THREE.PointsMaterial({
       size: 2,
+      sizeAttenuation: true,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.8,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
     });
     
-    const starField = new THREE.Points(geometry, material);
+    const starField = new THREE.Points(geometry, starMaterial);
+    starField.matrixAutoUpdate = false; // Disable auto matrix updates
+    starField.updateMatrix(); // Update matrix once
     scene.add(starField);
   }
   createStarField();
 
   
+const transitionState = {
+  inProgress: false,
+  type: null,
+  currentTween: null,
+  targetTween: null,
+  cameraPosTween: null
+};
+
+// Make sure to get the hover controls when setting up the UI
+// Initialize everything correctly
+const settingsUI = createSettingsUI(); // Capture the settingsUI object
+const hoverControls = setupPlanetHoverAnimations(transitionState);
+const updateCameraForTracking = setupUI(hoverControls, settingsUI, transitionState); // Pass transitionState here too
+  
   //
   // SETTINGS UI
   //
   function createSettingsUI() {
-    // Create container for settings buttons
     const settingsContainer = document.createElement('div');
     settingsContainer.className = 'settings-container';
     document.body.appendChild(settingsContainer);
-
+  
     // Create Bloom toggle
     const bloomToggle = document.createElement('button');
     bloomToggle.className = 'space-button settings-button';
@@ -574,32 +617,33 @@ scene.add(binaryPlanets.systemGroup);
       bloomToggle.textContent = `Bloom: ${bloomEnabled ? 'ON' : 'OFF'}`;
       updatePostProcessing();
     });
-    settingsContainer.appendChild(bloomToggle);
-
-    // Create SSAA toggle
+  
+    // Create SSAA toggle with reference
     const ssaaToggle = document.createElement('button');
     ssaaToggle.className = 'space-button settings-button';
-    ssaaToggle.textContent = 'SSAA: ON';
+    ssaaToggle.textContent = 'Quality: Low';
     ssaaToggle.addEventListener('click', () => {
       ssaaEnabled = !ssaaEnabled;
-      ssaaToggle.textContent = `SSAA: ${ssaaEnabled ? 'ON' : 'OFF'}`;
+      userQualityHighSet = ssaaEnabled;
+      ssaaPass.enabled = ssaaEnabled; // Sync with manual toggle
+      ssaaToggle.textContent = `Quality: ${ssaaEnabled ? 'High' : 'Low'}`;
       updatePostProcessing();
     });
     settingsContainer.appendChild(ssaaToggle);
+    settingsContainer.appendChild(bloomToggle);
 
     const fastForwardToggle = document.createElement('button');
-    fastForwardToggle.className = 'space-button settings-button'; // Match your existing styling
+    fastForwardToggle.className = 'space-button settings-button';
     fastForwardToggle.textContent = 'Fast Forward: OFF';
     let isFastForward = false;
-
+  
     fastForwardToggle.addEventListener('click', () => {
-        isFastForward = !isFastForward;
-        simulationSpeed = isFastForward ? 10 : 1; // Toggle between 1x and 10x speed
-        fastForwardToggle.textContent = `Fast Forward: ${isFastForward ? 'ON' : 'OFF'}`;
+      isFastForward = !isFastForward;
+      simulationSpeed = isFastForward ? 50 : 1;
+      fastForwardToggle.textContent = `Fast Forward: ${isFastForward ? 'ON' : 'OFF'}`;
     });
-
     settingsContainer.appendChild(fastForwardToggle);
-
+  
     // Add CSS for the settings UI
     const style = document.createElement('style');
     style.textContent = `
@@ -621,11 +665,14 @@ scene.add(binaryPlanets.systemGroup);
       }
     `;
     document.head.appendChild(style);
+  
+    // Return a function to update SSAA button text
+    return {
+      updateSSAAStatus: () => {
+        ssaaToggle.textContent = `Quality: ${ssaaPass.enabled ? 'High' : 'Low'}`;
+      }
+    };
   }
-
-  // Initialize settings UI
-  createSettingsUI();
-
 
   //
   // BUTTON ANIMATIONS
@@ -635,40 +682,95 @@ let isAnimationPaused = false;
 let isTracking = false;
 let trackedObject = null;
 let currentCameraDistance = null;
-let hoverAnimationInProgress = false;
 
-// Add this function to handle hover animations for all planet buttons
-function setupPlanetHoverAnimations() {
+// Updated setupPlanetHoverAnimations function to work with the new transition system
+function setupPlanetHoverAnimations(transitionState) {
   const planetButtons = document.querySelectorAll('[data-planet]');
+// Create planet name labels
+planetButtons.forEach(button => {
+  const planetName = button.dataset.planet;
+  
+  // Create a container for the button and label if it doesn't already exist
+  if (!button.parentNode.classList.contains('planet-button-container')) {
+    const container = document.createElement('div');
+    container.className = 'planet-button-container';
+    button.parentNode.insertBefore(container, button);
+    container.appendChild(button);
+  }
+  
+  // Create label element
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  
+  // Set the display name based on the data-planet value
+  let displayName = planetName.charAt(0).toUpperCase() + planetName.slice(1);
+  if (planetName === 'binary1') displayName = 'Zephyr I';
+  if (planetName === 'binary2') displayName = 'Zephyr II';
+  
+  label.textContent = displayName;
+  
+  // Add label after the button but within the container
+  button.parentNode.appendChild(label);
+});
+
+// Add CSS for the labels and containers
+const labelStyle = document.createElement('style');
+labelStyle.textContent = `
+  .planet-button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .planet-label {
+    text-align: center;
+    color: #aaaaaa;
+    font-size: 12px;
+    margin-top: 4px;
+    font-family: Arial, sans-serif;
+    opacity: 0.8;
+  }
+`;
+document.head.appendChild(labelStyle);
+
+
   const planetViews = {
     earth: { object: earth.mesh },
     mars: { object: mars.mesh },
     saturn: { object: saturn.mesh },
-    binary: { object: binaryPlanets.systemGroup }
-    // add more planets as needed
+    binary1: { object: binaryPlanets.planet1.mesh },
+    binary2: { object: binaryPlanets.planet2.mesh }
   };
 
-  let currentHoverTween = null;
-  let currentlyHoveredPlanet = null;
-  let isButtonHovered = false;
-  let originalCameraTarget = controls.target.clone();
-  let hoverTracking = false;
-
-  // Use a flag for hover animations only
-  let hoverAnimationInProgress = false;
+  let hoverState = {
+    inProgress: false,
+    currentTween: null,
+    currentPlanet: null,
+    isHovered: false
+  };
+  
+  let originalCameraTarget = new THREE.Vector3(0, 0, 0);
 
   function resetHoverSystem() {
-    hoverTracking = false;
-    currentlyHoveredPlanet = null;
-    isButtonHovered = false;
-    if (currentHoverTween) {
-      currentHoverTween.stop();
-      currentHoverTween = null;
-      hoverAnimationInProgress = false;
+    if (hoverState.currentTween) {
+      hoverState.currentTween.stop();
     }
+    
+    hoverState = {
+      inProgress: false,
+      currentTween: null,
+      currentPlanet: null,
+      isHovered: false
+    };
+
+    // Force reset target to original if needed
+  if (!isTracking && !transitionState.inProgress) {
+    controls.target.copy(originalCameraTarget);
+  }
   }
 
-  // When stopping tracking, force the original target to the sun.
   function saveOriginalCameraState() {
     originalCameraTarget = new THREE.Vector3(0, 0, 0);
   }
@@ -680,8 +782,9 @@ function setupPlanetHoverAnimations() {
   }
 
   function updateHoverTracking() {
-    if (!hoverTracking || !currentlyHoveredPlanet || isTracking) return;
-    const planetConfig = planetViews[currentlyHoveredPlanet];
+    if (!hoverState.isHovered || isTracking || hoverState.inProgress || transitionState.inProgress) return;
+    
+    const planetConfig = planetViews[hoverState.currentPlanet];
     if (planetConfig && planetConfig.object) {
       const planetPosition = getPlanetCurrentPosition(planetConfig.object);
       controls.target.lerp(planetPosition, 0.1);
@@ -689,80 +792,102 @@ function setupPlanetHoverAnimations() {
     }
   }
 
-  function lookAtPlanet(planetMesh) {
-    // Start a hover tween (do not gate these with the click flag)
-    hoverAnimationInProgress = true;
-    const planetPosition = getPlanetCurrentPosition(planetMesh);
+  function lookAtPlanet(planetName) {
+    if (isTracking || transitionState.inProgress) return; // Disable during transitions
+    
+    const planetConfig = planetViews[planetName];
+    if (!planetConfig || !planetConfig.object) return;
+    
+    hoverState.inProgress = true;
+    hoverState.currentPlanet = planetName;
+    
+    const planetPosition = getPlanetCurrentPosition(planetConfig.object);
     const startTarget = controls.target.clone();
-    const targetObject = { x: startTarget.x, y: startTarget.y, z: startTarget.z };
-
-    currentHoverTween = new TWEEN.Tween(targetObject)
-      .to({ x: planetPosition.x, y: planetPosition.y, z: planetPosition.z }, 800)
+    
+    hoverState.currentTween = new TWEEN.Tween({
+        x: startTarget.x,
+        y: startTarget.y,
+        z: startTarget.z
+      })
+      .to({
+        x: planetPosition.x,
+        y: planetPosition.y,
+        z: planetPosition.z
+      }, 800)
       .easing(TWEEN.Easing.Cubic.InOut)
-      .onUpdate(() => {
-        controls.target.set(targetObject.x, targetObject.y, targetObject.z);
-        camera.lookAt(controls.target);
+      .onUpdate((obj) => {
+        if (!isTracking && hoverState.isHovered && !transitionState.inProgress) {
+          controls.target.set(obj.x, obj.y, obj.z);
+          camera.lookAt(controls.target);
+        }
       })
       .onComplete(() => {
-        hoverAnimationInProgress = false;
-        hoverTracking = true;
-      })
-      .start();
-
-    return currentHoverTween;
+        hoverState.inProgress = false;
+        isSystemLocked = false;
+      });
+    
+    hoverState.currentTween.start();
   }
 
   function returnToOriginalView() {
-    hoverAnimationInProgress = true;
+    if (isTracking || transitionState.inProgress) return; // Disable during transitions
+    
+    hoverState.inProgress = true;
     const startTarget = controls.target.clone();
-    const targetObject = { x: startTarget.x, y: startTarget.y, z: startTarget.z };
-
-    currentHoverTween = new TWEEN.Tween(targetObject)
-      .to({ x: originalCameraTarget.x, y: originalCameraTarget.y, z: originalCameraTarget.z }, 800)
+    
+    hoverState.currentTween = new TWEEN.Tween({
+        x: startTarget.x,
+        y: startTarget.y,
+        z: startTarget.z
+      })
+      .to({
+        x: originalCameraTarget.x,
+        y: originalCameraTarget.y,
+        z: originalCameraTarget.z
+      }, 800)
       .easing(TWEEN.Easing.Cubic.InOut)
-      .onUpdate(() => {
-        controls.target.set(targetObject.x, targetObject.y, targetObject.z);
-        camera.lookAt(controls.target);
+      .onUpdate((obj) => {
+        if (!isTracking && !transitionState.inProgress) {
+          controls.target.set(obj.x, obj.y, obj.z);
+          camera.lookAt(controls.target);
+        }
       })
       .onComplete(() => {
-        hoverAnimationInProgress = false;
-      })
-      .start();
-
-    return currentHoverTween;
+        isSystemLocked = false;
+        hoverState.inProgress = false;
+        hoverState.currentPlanet = null;
+      });
+    
+    hoverState.currentTween.start();
   }
 
-  // Remove the global "animationInProgress" check from hovers—allow these to be interrupted.
   planetButtons.forEach(button => {
     const planetName = button.dataset.planet;
 
     button.addEventListener('mouseenter', () => {
-      if (isTracking) return; // if a tracking (click) animation is running, ignore hovers
-      isButtonHovered = true;
-      if (currentHoverTween) {
-        currentHoverTween.stop();
-        currentHoverTween = null;
-        hoverAnimationInProgress = false;
+      // First check transition state
+  if (isTracking || transitionState.inProgress || isSystemLocked) {
+    // If in transition, force reset hover state
+    hoverState.isHovered = false;
+    return;
+  }
+    
+      hoverState.isHovered = true;
+      if (hoverState.currentTween) {
+        hoverState.currentTween.stop();
       }
-      const planetConfig = planetViews[planetName];
-      if (planetConfig && planetConfig.object) {
-        currentlyHoveredPlanet = planetName;
-        lookAtPlanet(planetConfig.object);
-      }
+      lookAtPlanet(planetName);
     });
 
     button.addEventListener('mouseleave', () => {
-      if (isTracking) return;
-      isButtonHovered = false;
-      // Use a slight delay to check for overlapping hovers.
+      if (isTracking || transitionState.inProgress || isSystemLocked) return; // Prevent hover during transitions
+      
+      hoverState.isHovered = false;
       setTimeout(() => {
-        if (!isButtonHovered && !isTracking) {
-          if (currentHoverTween) {
-            currentHoverTween.stop();
-            currentHoverTween = null;
-            hoverAnimationInProgress = false;
+        if (!hoverState.isHovered && !isTracking && !transitionState.inProgress) {
+          if (hoverState.currentTween) {
+            hoverState.currentTween.stop();
           }
-          currentlyHoveredPlanet = null;
           returnToOriginalView();
         }
       }, 50);
@@ -771,23 +896,131 @@ function setupPlanetHoverAnimations() {
 
   return {
     updateOriginalTarget: () => {
-      if (!currentlyHoveredPlanet && !isTracking) {
+      if (!hoverState.currentPlanet && !isTracking) {
         originalCameraTarget = controls.target.clone();
       }
     },
-    // When tracking stops, force the saved target to the sun.
-    handleStopTracking: () => {
-      saveOriginalCameraState();
-    },
+    handleStopTracking: saveOriginalCameraState,
     updateHoverTracking: updateHoverTracking,
     reset: resetHoverSystem
   };
 }
 
 // Update your setupUI function to integrate with hover animations
-function setupUI(hoverControls) {
+function setupUI(hoverControls, settingsUI, transitionState) {
   const backButton = document.querySelector('.back-button');
   const planetButtons = document.querySelectorAll('[data-planet]');
+  const buttonContainer = document.querySelector('.nav-buttons'); // Assuming this exists
+
+  // Function to reset all buttons and their labels to normal size and position
+  function resetAllButtonsToNormal() {
+    planetButtons.forEach(btn => {
+      btn.classList.remove('active-planet');
+      btn.style.transform = 'translateX(0) scale(1)';
+      
+      // Find and reset the label associated with this button
+      const label = btn.parentNode.querySelector('.planet-label');
+      if (label) {
+        label.classList.remove('active-label');
+        label.style.transform = 'translateX(0) scale(1)';
+      }
+    });
+  }
+
+  planetButtons.forEach((button, index) => {
+    button.addEventListener('click', () => {
+      if (transitionState.inProgress) return;
+      
+      // Reset all buttons first
+      resetAllButtonsToNormal();
+      
+      // Make the clicked button larger
+      button.classList.add('active-planet');
+      
+      // Find the label associated with this button
+      const label = button.parentNode.querySelector('.planet-label');
+      if (label) {
+        label.classList.add('active-label');
+      }
+      
+      // Move other buttons to make space
+      const buttonWidth = button.offsetWidth;
+      const expandedWidth = buttonWidth * 1.7; // 50% larger
+      const spaceNeeded = (expandedWidth - buttonWidth) / 2;
+      
+      planetButtons.forEach((otherButton, otherIndex) => {
+        if (otherButton !== button) {
+          if (otherIndex < index) {
+            // Move buttons before the active one to the left
+            otherButton.style.transform = `translateX(-${spaceNeeded}px) scale(1)`;
+            
+            // Also move their labels
+            const otherLabel = otherButton.parentNode.querySelector('.planet-label');
+            if (otherLabel) {
+              otherLabel.style.transform = `translateX(-${spaceNeeded}px) scale(1)`;
+            }
+          } else {
+            // Move buttons after the active one to the right
+            otherButton.style.transform = `translateX(${spaceNeeded}px) scale(1)`;
+            
+            // Also move their labels
+            const otherLabel = otherButton.parentNode.querySelector('.planet-label');
+            if (otherLabel) {
+              otherLabel.style.transform = `translateX(${spaceNeeded}px) scale(1)`;
+            }
+          }
+        } else {
+          // The active button stays centered but grows
+          otherButton.style.transform = 'scale(1.7)';
+          
+          // Scale the label as well
+          if (label) {
+            label.style.transform = 'scale(1.7)';
+          }
+        }
+      });
+      
+      const planet = button.dataset.planet;
+      const view = planetViews[planet];
+      if (view) {
+        startTracking(view);
+      }
+    });
+  });
+
+  // Also add this to the back button click handler
+  backButton.addEventListener('click', () => {
+    if (transitionState.inProgress) return;
+    
+    // Reset all buttons to normal size and position when going back
+    resetAllButtonsToNormal();
+    
+    stopTracking();
+  });
+
+  // Add CSS for the active state and transitions
+  const activeButtonStyle = document.createElement('style');
+  activeButtonStyle.textContent = `
+    [data-planet] {
+      transition: transform 0.3s ease;
+    }
+    
+    .active-planet {
+      z-index: 30;
+    }
+    
+    .planet-label {
+      transition: transform 0.3s ease;
+    }
+    
+    .active-label {
+      display: none;
+      color: #ffffff;
+      font-weight: bold;
+      z-index: 30;
+    }
+  `;
+  document.head.appendChild(activeButtonStyle);
 
   const defaultCameraPos = { x: 0, y: 2000, z: 5300 };
 
@@ -806,160 +1039,200 @@ function setupUI(hoverControls) {
     },
     saturn: {
       object: saturn.mesh,
-      distance: 300, // Larger distance for a better view
-      height: 80,
+      distance: 120,
+      height: 50,
       angle: Math.PI * 0.6
     },
-    binary: {
-      object: binaryPlanets.systemGroup,
-      distance: 400,
-      height: 100,
+    binary1: {
+      object: binaryPlanets.planet1.mesh,
+      distance: 80,
+      height: 20,
       angle: Math.PI * 0.6
-}
-    // add more planet configurations as needed
+    },
+    binary2: {
+      object: binaryPlanets.planet2.mesh,
+      distance: 50,
+      height: 20,
+      angle: Math.PI * 0.6
+    }
   };
-
-  // Flag for click-based transitions
-  let clickAnimationInProgress = false;
-  function calculateDarkSidePosition(planetMesh) {
+  
+  function calculateViewPosition(planetMesh, config) {
     const planetPosition = new THREE.Vector3();
     planetMesh.getWorldPosition(planetPosition);
   
     const sunToPlanet = planetPosition.clone().sub(new THREE.Vector3(0, 0, 0));
     const cameraOffset = sunToPlanet.clone()
       .normalize()
-      .multiplyScalar(currentCameraDistance.distance);
+      .multiplyScalar(config.distance);
   
     const cameraPosition = planetPosition.clone().add(cameraOffset);
-    cameraPosition.y += currentCameraDistance.height;
+    cameraPosition.y += config.height;
   
     return {
       cameraPos: cameraPosition,
-      targetPos: planetPosition.clone() // Initially look at the planet, not the sun
+      targetPos: planetPosition.clone()
     };
   }
 
   function updateCameraForTracking() {
-    if (!isTracking || !trackedObject) return;
+    if (!isTracking || !trackedObject || transitionState.inProgress) return;
 
-    const { cameraPos, targetPos } = calculateDarkSidePosition(trackedObject);
+    const planetPosition = new THREE.Vector3();
+    trackedObject.getWorldPosition(planetPosition);
+
+    const { cameraPos, targetPos } = calculateViewPosition(trackedObject, currentCameraDistance);
+    
     camera.position.lerp(cameraPos, 0.1);
-    camera.lookAt(targetPos);
     controls.target.lerp(targetPos, 0.1);
-    hoverControls.updateOriginalTarget();
+    camera.lookAt(controls.target);
   }
 
-  // Fix the startTracking function to handle Saturn properly
-function startTracking(planetConfig) {
-  if (clickAnimationInProgress) return;
-  clickAnimationInProgress = true;
+  function startTracking(planetConfig) {
+    isSystemLocked = true;
+    hoverControls.reset();
 
-  // Stop hover stuff
-  if (hoverAnimationInProgress && currentHoverTween) {
-    currentHoverTween.stop();
-    currentHoverTween = null;
-  }
-  hoverAnimationInProgress = false;
+    if (transitionState.inProgress) {
+      if (transitionState.currentTween) transitionState.currentTween.stop();
+      if (transitionState.targetTween) transitionState.targetTween.stop();
+      if (transitionState.cameraPosTween) transitionState.cameraPosTween.stop();
+    }
+    
+    transitionState = {
+      inProgress: true,
+      type: 'toObject',
+      currentTween: null,
+      targetTween: null,
+      cameraPosTween: null
+    };
 
-  isAnimationPaused = true;
-  controls.enabled = false;
-  trackedObject = planetConfig.object;
-  backButton.style.display = 'flex';
+    isAnimationPaused = true;
+    controls.enabled = false;
+    controls.autoRotate = false;
+    backButton.style.display = 'flex';
 
-  currentCameraDistance = {
-    distance: planetConfig.distance,
-    height: planetConfig.height
-  };
-  
-  // Critical fix: Get the world position of the planet for Saturn
-  const planetWorldPosition = new THREE.Vector3();
-  planetConfig.object.getWorldPosition(planetWorldPosition);
-  
-  // This is the place we want to move the camera
-  const { cameraPos, targetPos } = calculateDarkSidePosition(trackedObject);
-
-  // --- TWEEN #1: Move camera to the planet, while always looking at planet ---
-  new TWEEN.Tween(camera.position)
-    .to({
-      x: cameraPos.x,
-      y: cameraPos.y,
-      z: cameraPos.z
-    }, 2000)
-    .easing(TWEEN.Easing.Cubic.InOut)
-    .onUpdate(() => {
-      // Get the current world position for the planet each frame
-      const currentPlanetPosition = new THREE.Vector3();
-      trackedObject.getWorldPosition(currentPlanetPosition);
-      
-      // Continually look at the planet so there's no pop.
-      camera.lookAt(currentPlanetPosition);
-      // Update controls.target to match, do it here:
-      controls.target.copy(currentPlanetPosition);
-    })
-    .onComplete(() => {
-      // Get final planet position
-      const finalPlanetPosition = new THREE.Vector3();
-      trackedObject.getWorldPosition(finalPlanetPosition);
-      
-      // --- Optionally, TWEEN #2: after arrival, look back at the sun if you want ---
-      const lookTarget = finalPlanetPosition.clone();
-      new TWEEN.Tween(lookTarget)
-        .to({
-          x: targetPos.x,
-          y: targetPos.y,
-          z: targetPos.z
-        }, 1200)
-        .easing(TWEEN.Easing.Quadratic.InOut)
-        .onUpdate(() => {
-          controls.target.copy(lookTarget);
-          camera.lookAt(controls.target);
-        })
-        .onComplete(() => {
-          isTracking = true;
-          clickAnimationInProgress = false;
-        })
-        .start();
-    })
-    .start();
-}
-
-  function stopTracking() {
-    if (clickAnimationInProgress) return;
-    clickAnimationInProgress = true;
-
-    isTracking = false;
-    controls.enabled = true;
-    trackedObject = null;
-    currentCameraDistance = null;
-    controls.autoRotate = true;
-    backButton.style.display = 'none';
-
-    const sunPosition = new THREE.Vector3(0, 0, 0);
-
-    new TWEEN.Tween(controls.target)
-      .to({ x: sunPosition.x, y: sunPosition.y, z: sunPosition.z }, 1000)
+    trackedObject = planetConfig.object;
+    currentCameraDistance = {
+      distance: planetConfig.distance,
+      height: planetConfig.height
+    };
+    
+    const planetWorldPosition = new THREE.Vector3();
+    trackedObject.getWorldPosition(planetWorldPosition);
+    
+    const { cameraPos, targetPos } = calculateViewPosition(trackedObject, currentCameraDistance);
+    
+    const startTarget = controls.target.clone();
+    
+    transitionState.cameraPosTween = new TWEEN.Tween(camera.position)
+      .to({
+        x: cameraPos.x,
+        y: cameraPos.y,
+        z: cameraPos.z
+      }, 2000)
+      .easing(TWEEN.Easing.Cubic.InOut);
+    
+    transitionState.targetTween = new TWEEN.Tween({
+        x: startTarget.x,
+        y: startTarget.y,
+        z: startTarget.z
+      })
+      .to({
+        x: planetWorldPosition.x,
+        y: planetWorldPosition.y,
+        z: planetWorldPosition.z
+      }, 2000)
       .easing(TWEEN.Easing.Cubic.InOut)
-      .start();
-
-    new TWEEN.Tween(camera.position)
-      .to(defaultCameraPos, 2000)
-      .easing(TWEEN.Easing.Cubic.InOut)
-      .onUpdate(() => {
-        camera.lookAt(sunPosition);
+      .onUpdate((obj) => {
+        controls.target.set(obj.x, obj.y, obj.z);
+        camera.lookAt(controls.target);
       })
       .onComplete(() => {
+        isSystemLocked = false;
+        isTracking = true;
+        transitionState.inProgress = false;
+        controls.target.copy(planetWorldPosition);
+        hoverControls.reset();
+        ssaaPass.enabled = false; // Turn off SSAA when fully zoomed in
+        settingsUI.updateSSAAStatus(); // Update SSAA button text
+      });
+    
+    transitionState.cameraPosTween.start();
+    transitionState.targetTween.start();
+    transitionState.currentTween = transitionState.targetTween;
+  }
+
+  function stopTracking() {
+    isSystemLocked = true;
+    hoverControls.reset();
+    if (transitionState.inProgress) {
+      if (transitionState.currentTween) transitionState.currentTween.stop();
+      if (transitionState.targetTween) transitionState.targetTween.stop();
+      if (transitionState.cameraPosTween) transitionState.cameraPosTween.stop();
+    }
+    
+    transitionState = {
+      inProgress: true,
+      type: 'toSun',
+      currentTween: null,
+      targetTween: null,
+      cameraPosTween: null
+    };
+
+    isTracking = false;
+    backButton.style.display = 'none';
+    // Restore quality to High only if user had set it; otherwise, keep it Low.
+    if (userQualityHighSet) {
+      ssaaPass.enabled = true;
+    } else {
+      ssaaPass.enabled = false;
+    }
+    settingsUI.updateSSAAStatus();
+
+    const sunPosition = new THREE.Vector3(0, 0, 0);
+    const startTarget = controls.target.clone();
+    
+    transitionState.cameraPosTween = new TWEEN.Tween(camera.position)
+      .to(defaultCameraPos, 2000)
+      .easing(TWEEN.Easing.Cubic.InOut);
+    
+    transitionState.targetTween = new TWEEN.Tween({
+        x: startTarget.x,
+        y: startTarget.y,
+        z: startTarget.z
+      })
+      .to({
+        x: sunPosition.x,
+        y: sunPosition.y,
+        z: sunPosition.z
+      }, 2000)
+      .easing(TWEEN.Easing.Cubic.InOut)
+      .onUpdate((obj) => {
+        controls.target.set(obj.x, obj.y, obj.z);
+        camera.lookAt(controls.target);
+      })
+      .onComplete(() => {
+        isSystemLocked = false;
         isAnimationPaused = false;
-        controls.target.set(0, 0, 0);
+        controls.enabled = true;
+        controls.autoRotate = true;
+        trackedObject = null;
+        currentCameraDistance = null;
+        controls.target.copy(sunPosition);
+        camera.lookAt(controls.target);
+        transitionState.inProgress = false;
         hoverControls.reset();
         hoverControls.handleStopTracking();
-        clickAnimationInProgress = false;
-      })
-      .start();
+      });
+    
+    transitionState.cameraPosTween.start();
+    transitionState.targetTween.start();
+    transitionState.currentTween = transitionState.targetTween;
   }
 
   planetButtons.forEach(button => {
     button.addEventListener('click', () => {
-      if (clickAnimationInProgress) return;
+      if (transitionState.inProgress) return;
       const planet = button.dataset.planet;
       const view = planetViews[planet];
       if (view) {
@@ -969,11 +1242,42 @@ function startTracking(planetConfig) {
   });
 
   backButton.addEventListener('click', () => {
-    if (clickAnimationInProgress) return;
+    if (transitionState.inProgress) return;
     stopTracking();
   });
 
   return updateCameraForTracking;
+}
+
+function planetaryAnimations(){
+      // Update predefined orbits (e.g., Earth, Mars, etc.)
+      earthOrbit.revIndex = (earthOrbit.revIndex + simulationSpeed) % earthOrbit.points.length;
+      const earthPos = earthOrbit.points[earthOrbit.revIndex];
+      earth.mesh.position.set(earthPos.x, 0, earthPos.y);
+  
+      moonOrbit.revIndex = (moonOrbit.revIndex + simulationSpeed) % moonOrbit.points.length;
+      const moonPos = moonOrbit.points[moonOrbit.revIndex];
+      moon.mesh.position.set(moonPos.x, 0, moonPos.y);
+  
+      marsOrbit.revIndex = (marsOrbit.revIndex + simulationSpeed) % marsOrbit.points.length;
+      const marsPos = marsOrbit.points[marsOrbit.revIndex];
+      mars.mesh.position.set(marsPos.x, 0, marsPos.y);
+  
+      saturnOrbit.revIndex = (saturnOrbit.revIndex + simulationSpeed) % saturnOrbit.points.length;
+      const saturnPos = saturnOrbit.points[saturnOrbit.revIndex];
+      saturnSystem.position.set(saturnPos.x, 0, saturnPos.y);
+  
+      // Update binary planet system
+      binaryPlanets.updateBinaryPositions(binaryPlanets.dt * simulationSpeed * 10);
+  
+      // Update binary system's solar orbit
+      binaryPlanets.sunOrbit.revIndex = (binaryPlanets.sunOrbit.revIndex + (simulationSpeed*5)) % binaryPlanets.sunOrbit.points.length;
+      const binaryPos = binaryPlanets.sunOrbit.points[binaryPlanets.sunOrbit.revIndex];
+      binaryPlanets.systemGroup.position.set(binaryPos.x, 0, binaryPos.y);
+  
+      // Rotations (visual effects)
+      sun.mesh.rotation.y += 0.007 * simulationSpeed;
+      saturnRings.rotation.y += 0.002 * simulationSpeed;
 }
 
 //
@@ -985,35 +1289,8 @@ function animate() {
   stats.begin();
   TWEEN.update();
   
-  if (!isAnimationPaused) { // Assuming you have a pause feature
-    // Update predefined orbits (e.g., Earth, Mars, etc.)
-    earthOrbit.revIndex = (earthOrbit.revIndex + simulationSpeed) % earthOrbit.points.length;
-    const earthPos = earthOrbit.points[earthOrbit.revIndex];
-    earth.mesh.position.set(earthPos.x, 0, earthPos.y);
-
-    moonOrbit.revIndex = (moonOrbit.revIndex + simulationSpeed) % moonOrbit.points.length;
-    const moonPos = moonOrbit.points[moonOrbit.revIndex];
-    moon.mesh.position.set(moonPos.x, 0, moonPos.y);
-
-    marsOrbit.revIndex = (marsOrbit.revIndex + simulationSpeed) % marsOrbit.points.length;
-    const marsPos = marsOrbit.points[marsOrbit.revIndex];
-    mars.mesh.position.set(marsPos.x, 0, marsPos.y);
-
-    saturnOrbit.revIndex = (saturnOrbit.revIndex + simulationSpeed) % saturnOrbit.points.length;
-    const saturnPos = saturnOrbit.points[saturnOrbit.revIndex];
-    saturnSystem.position.set(saturnPos.x, 0, saturnPos.y);
-
-    // Update binary planet system
-    binaryPlanets.updateBinaryPositions(binaryPlanets.dt * simulationSpeed);
-
-    // Update binary system's solar orbit
-    binaryPlanets.sunOrbit.revIndex = (binaryPlanets.sunOrbit.revIndex + simulationSpeed) % binaryPlanets.sunOrbit.points.length;
-    const binaryPos = binaryPlanets.sunOrbit.points[binaryPlanets.sunOrbit.revIndex];
-    binaryPlanets.systemGroup.position.set(binaryPos.x, 0, binaryPos.y);
-
-    // Rotations (visual effects)
-    sun.mesh.rotation.y += 0.007 * simulationSpeed;
-    saturnRings.rotation.y += 0.002 * simulationSpeed;
+  if (!isAnimationPaused) {
+    planetaryAnimations();
 }
 
   // Update camera tracking for clicked planet
@@ -1025,10 +1302,16 @@ function animate() {
   composer.render();
   stats.end();
 }
-
-// Make sure to get the hover controls when setting up the UI
-const hoverControls = setupPlanetHoverAnimations();
-const updateCameraForTracking = setupUI(hoverControls);
-
 animate();
+  }
+
+window.addEventListener('resize', () => {
+  // Update camera aspect ratio
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  
+  // Update renderer and composer size
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
 });
+
