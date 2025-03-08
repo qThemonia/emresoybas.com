@@ -119,7 +119,7 @@ canvas {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, transparent 70%);
   opacity: 0;
   animation: particleBurst 1s ease-out 1s forwards;
 }
@@ -135,5 +135,24 @@ canvas {
   100% {
     opacity: 0;
     transform: scale(2);
+  }
+}
+
+/* Media query for mobile devices */
+@media screen and (max-width: 768px) {
+  .back-button {
+    top: auto; /* Reset top position */
+    bottom: 2rem; /* Position at bottom instead */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Center alignment */
+  }
+  
+  .nav-buttons {
+    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+    justify-content: center;
+  }
+  
+  .space-button {
+    margin-bottom: 0.5rem; /* Add some spacing between wrapped buttons */
   }
 }
