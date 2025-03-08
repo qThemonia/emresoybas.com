@@ -69,7 +69,7 @@ let isSystemLocked = false;
   window.addEventListener('DOMContentLoaded', () => {
     const introOverlay = document.querySelector('.intro-overlay');
     const cosmicText = document.querySelector('.cosmic-text');
-    const name = "Emre Soybas";
+    const name = "Emre           Soybas";
   
     // Split the name into individual letters
     cosmicText.innerHTML = name.split('').map((letter, i) => 
@@ -80,7 +80,7 @@ let isSystemLocked = false;
     setTimeout(() => {
       introOverlay.classList.add('hidden');
       initSolarSystem(); // Start the solar system after intro
-    }, 2500); // 2.5 seconds total (1s for text + 1.5s for fade)
+    }, 4500); // 2.5 seconds total (1s for text + 1.5s for fade)
   });
   
   function initSolarSystem(){
@@ -169,8 +169,8 @@ let isSystemLocked = false;
   sunLight.position.set(0, 0, 0);
   sunLight.castShadow = true;
   scene.add(sunLight);
-  sunLight.shadow.mapSize.width = 10000;
-  sunLight.shadow.mapSize.height = 10000;
+  sunLight.shadow.mapSize.width = 512;
+  sunLight.shadow.mapSize.height = 512;
   sunLight.shadow.camera.near = 1;
   sunLight.shadow.camera.far = 5000;
 
