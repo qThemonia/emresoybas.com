@@ -63,24 +63,32 @@ let isSystemLocked = false;
   stats.dom.style.top = '95%';
   stats.dom.style.left = '0px';
   stats.dom.style.zIndex = '100'; // Make sure it's above other elements
+  stats.dom.style.display = 'none';
   document.body.appendChild(stats.dom);
 
 
   window.addEventListener('DOMContentLoaded', () => {
     const introOverlay = document.querySelector('.intro-overlay');
     const cosmicText = document.querySelector('.cosmic-text');
-    const name = "Emre           Soybas";
+    const name = "Emre Soybas";
   
-    // Split the name into individual letters
-    cosmicText.innerHTML = name.split('').map((letter, i) => 
-      `<span style="animation-delay: ${i * 0.1}s">${letter}</span>`
-    ).join('');
-  
+    cosmicText.innerHTML = name.split(' ').map((word, wordIndex) => 
+      word.split('').map((letter, letterIndex) => 
+        `<span class="letter" style="animation-delay: ${(wordIndex * 0.5) + (letterIndex * 0.1)}s">${letter}</span>`
+      ).join('')
+    ).join('<span class="word-space"> </span>');
+
+  // Create explosion effect that appears after lasers
+  const explosion = document.createElement('div');
+  explosion.className = 'laser-explosion';
+  introOverlay.appendChild(explosion);
+
     // Delay the solar system load until intro completes
     setTimeout(() => {
       introOverlay.classList.add('hidden');
       initSolarSystem(); // Start the solar system after intro
-    }, 4500); // 2.5 seconds total (1s for text + 1.5s for fade)
+      stats.dom.style.display = 'block';
+    }, 2500); // 2.5 seconds total (1s for text + 1.5s for fade)
   });
   
   function initSolarSystem(){

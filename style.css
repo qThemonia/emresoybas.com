@@ -89,70 +89,106 @@ canvas {
   pointer-events: none;
 }
 
-.cosmic-text {
+/* Modified cosmic text for laser effect */
+.cosmic-text {  
   font-family: Arial, sans-serif;
-  font-size: 4rem;
+  font-size: 5rem;
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 5px;
-  opacity: 1;
   position: relative;
+  z-index: 10;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
-.cosmic-text span {
+.cosmic-text .letter {
   display: inline-block;
   opacity: 0;
   transform: translateY(20px);
   animation: letterReveal 0.5s forwards;
 }
 
-@keyframes letterReveal {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Particle Burst Effect */
-.intro-overlay::before {
-  content: '';
+/* Explosion effect (adjusted for red theme) */
+.laser-explosion {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 0, 0, 1) 0%, /* Red center */
+    rgba(255, 69, 0, 0.8) 30%, /* Orange-red fade */
+    rgba(255, 0, 0, 0.5) 60%, /* Red outer glow */
+    transparent 100%
+  );
   opacity: 0;
-  animation: particleBurst 1s ease-out 1s forwards;
+  animation: explosion 1s ease-out 1.5s forwards;
+  z-index: 8;
 }
 
-@keyframes particleBurst {
+/* Explosion animation */
+@keyframes explosion {
   0% {
+    width: 0;
+    height: 0;
     opacity: 0;
-    transform: scale(0);
   }
-  50% {
+  40% {
     opacity: 1;
   }
   100% {
+    width: 200vw;
+    height: 200vw;
     opacity: 0;
-    transform: scale(2);
   }
 }
 
-/* Media query for mobile devices */
-@media screen and (max-width: 768px) {
-  .back-button {
-    top: auto; /* Reset top position */
-    bottom: 2rem; /* Position at bottom instead */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Center alignment */
+/* Slightly adjust the letterReveal animation to work with lasers */
+@keyframes letterReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
+  50% {
+    opacity: 0.5;
+    text-shadow: 0 0 20px #fff, 0 0 30px #00f;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(100, 200, 255, 0.5);
+  }
+}
+
+/* Remove or modify the old particle burst effect */
+.intro-overlay::before {
+  content: none; /* Remove the old effect */
+}
+
+@media screen and (max-width: 768px) {
+  .space-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Remove fixed positioning if it causes issues */
+    padding: 1rem;
+  }
   .nav-buttons {
-    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+    margin-bottom: 1rem; /* space between nav and back button */
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
   }
-  
+  .back-button {
+    position: static; /* Let it flow normally in the column */
+    transform: none;
+    margin: 0 auto;
+    display: block;
+  }
   .space-button {
-    margin-bottom: 0.5rem; /* Add some spacing between wrapped buttons */
+    margin-bottom: 0.5rem;
   }
 }
