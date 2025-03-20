@@ -48,7 +48,8 @@ class Orbit {
 }
 
 let isSystemLocked = false;
-
+let isRenderingPaused = false;
+let backButtonHovered = false;
 
 //
 // SCENE SETUP
@@ -88,7 +89,7 @@ let isSystemLocked = false;
       introOverlay.classList.add('hidden');
       initSolarSystem(); // Start the solar system after intro
       stats.dom.style.display = 'block';
-    }, 2500); // 2.5 seconds total (1s for text + 1.5s for fade)
+    }, 2300); // 2.5 seconds total (1s for text + 1.5s for fade)
   });
   
   function initSolarSystem(){
@@ -390,9 +391,20 @@ class BinaryPlanetSystem {
     const curve = new THREE.EllipseCurve(0, 0, sunDistance, sunDistance, 0, 2 * Math.PI, false, 0);
     const points = curve.getPoints(20000);
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: 0xc8c8c8 });
+    
+    // Create a dashed line material instead of a solid one
+    const material = new THREE.LineDashedMaterial({
+      color: 0xc8c8c8,
+      dashSize: 300,
+      gapSize: 300,
+      scale: 1
+    });
+    
     this.sunOrbit = { line: new THREE.Line(geometry, material), points, revIndex: 0 };
     this.sunOrbit.line.rotation.x = Math.PI / 2;
+    
+    // This is essential - we need to compute the line distances for the dashed effect to work
+    this.sunOrbit.line.computeLineDistances();
   }
 
   createOrbitTrails() {
@@ -999,7 +1011,6 @@ function setupUI(hoverControls, settingsUI, transitionState) {
   // Also add this to the back button click handler
   backButton.addEventListener('click', () => {
     if (transitionState.inProgress) return;
-    
     // Reset all buttons to normal size and position when going back
     resetAllButtonsToNormal();
     
@@ -1163,6 +1174,16 @@ function setupUI(hoverControls, settingsUI, transitionState) {
         hoverControls.reset();
         ssaaPass.enabled = false; // Turn off SSAA when fully zoomed in
         settingsUI.updateSSAAStatus(); // Update SSAA button text
+        scene.visible = false;
+
+        // Show Projects page if Earth (Projects button) is clicked
+      if (planetConfig.object === earth.mesh) {
+        const projectsPage = document.querySelector('.projects-page');
+        projectsPage.style.display = 'block';
+        setTimeout(() => {
+          projectsPage.classList.add('visible');
+        }, 10); // Small delay to trigger transition
+      }
       });
     
     transitionState.cameraPosTween.start();
@@ -1172,6 +1193,7 @@ function setupUI(hoverControls, settingsUI, transitionState) {
 
   function stopTracking() {
     isSystemLocked = true;
+    scene.visible = true;
     hoverControls.reset();
     if (transitionState.inProgress) {
       if (transitionState.currentTween) transitionState.currentTween.stop();
@@ -1197,6 +1219,15 @@ function setupUI(hoverControls, settingsUI, transitionState) {
     }
     settingsUI.updateSSAAStatus();
 
+    // Hide Projects page
+  const projectsPage = document.querySelector('.projects-page');
+  if (projectsPage.classList.contains('visible')) {
+    projectsPage.classList.remove('visible');
+    setTimeout(() => {
+      projectsPage.style.display = 'none';
+    }, 500); // Match transition duration
+  }
+  
     const sunPosition = new THREE.Vector3(0, 0, 0);
     const startTarget = controls.target.clone();
     
@@ -1311,7 +1342,6 @@ function animate() {
   stats.end();
 }
 animate();
-  }
 
 window.addEventListener('resize', () => {
   // Update camera aspect ratio
@@ -1322,4 +1352,4 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
 });
-
+  }

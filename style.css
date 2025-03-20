@@ -47,6 +47,7 @@ canvas {
   font-size: 20px;
   letter-spacing: 1px;
   pointer-events: auto;
+  user-select: none;
 }
 
 .space-button:hover {
@@ -94,7 +95,6 @@ canvas {
   font-family: Arial, sans-serif;
   font-size: 5rem;
   color: #fff;
-  text-transform: uppercase;
   letter-spacing: 5px;
   position: relative;
   z-index: 10;
@@ -119,9 +119,9 @@ canvas {
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 0, 0, 1) 0%, /* Red center */
-    rgba(255, 69, 0, 0.8) 30%, /* Orange-red fade */
-    rgba(255, 0, 0, 0.5) 60%, /* Red outer glow */
+    rgb(187, 194, 0) 0%, /* Red center */
+    rgba(115, 123, 0, 0.8) 30%, /* Orange-red fade */
+    rgba(0, 0, 0, 0.5) 60%, /* Red outer glow */
     transparent 100%
   );
   opacity: 0;
@@ -190,5 +190,164 @@ canvas {
   }
   .space-button {
     margin-bottom: 0.5rem;
+  }
+}
+/* Projects Page Styles */
+.projects-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.projects-page.visible {
+  opacity: 1;
+}
+
+.projects-container {
+  width: 80%;
+  max-width: 1200px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: transform 0.3s ease, background 0.3s ease;
+  width: 100%;
+  max-width: 800px; /* Limit width for centering */
+}
+
+.project-item:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.project-icon {
+  width: 64px;
+  height: 64px;
+  margin-right: 1rem;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.25rem;
+}
+
+.project-icon img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.project-details {
+  flex: 1;
+  color: white;
+}
+
+.project-details h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-family: Arial, sans-serif;
+}
+
+.project-details p {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  color: #cccccc;
+}
+
+.project-tech {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.tech-tile {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.tech-tile:hover {
+  transform: scale(1.1);
+}
+
+.tech-tile img {
+  width: 24px;
+  height: 24px;
+}
+
+.tech-tile::after {
+  content: attr(data-tech);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.tech-tile:hover::after {
+  opacity: 1;
+}
+
+/* Back Button Positioning */
+.projects-page .back-button {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media screen and (max-width: 768px) {
+  .projects-container {
+    width: 90%;
+    padding: 1rem;
+  }
+
+  .project-item {
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 100%;
+  }
+
+  .project-icon {
+    margin-bottom: 1rem;
+  }
+
+  .project-tech {
+    margin-left: 0;
+    margin-top: 1rem;
   }
 }
