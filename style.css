@@ -47,6 +47,7 @@ canvas {
   font-size: 20px;
   letter-spacing: 1px;
   pointer-events: auto;
+  user-select: none;
 }
 
 .space-button:hover {
@@ -89,70 +90,264 @@ canvas {
   pointer-events: none;
 }
 
-.cosmic-text {
+/* Modified cosmic text for laser effect */
+.cosmic-text {  
   font-family: Arial, sans-serif;
-  font-size: 4rem;
+  font-size: 5rem;
   color: #fff;
-  text-transform: uppercase;
   letter-spacing: 5px;
-  opacity: 1;
   position: relative;
+  z-index: 10;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
-.cosmic-text span {
+.cosmic-text .letter {
   display: inline-block;
   opacity: 0;
   transform: translateY(20px);
   animation: letterReveal 0.5s forwards;
 }
 
-@keyframes letterReveal {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Particle Burst Effect */
-.intro-overlay::before {
-  content: '';
+/* Explosion effect (adjusted for red theme) */
+.laser-explosion {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(187, 194, 0) 0%, /* Red center */
+    rgba(115, 123, 0, 0.8) 30%, /* Orange-red fade */
+    rgba(0, 0, 0, 0.5) 60%, /* Red outer glow */
+    transparent 100%
+  );
   opacity: 0;
-  animation: particleBurst 1s ease-out 1s forwards;
+  animation: explosion 1s ease-out 1.5s forwards;
+  z-index: 8;
 }
 
-@keyframes particleBurst {
+/* Explosion animation */
+@keyframes explosion {
   0% {
+    width: 0;
+    height: 0;
     opacity: 0;
-    transform: scale(0);
   }
-  50% {
+  40% {
     opacity: 1;
   }
   100% {
+    width: 200vw;
+    height: 200vw;
     opacity: 0;
-    transform: scale(2);
   }
 }
 
-/* Media query for mobile devices */
-@media screen and (max-width: 768px) {
-  .back-button {
-    top: auto; /* Reset top position */
-    bottom: 2rem; /* Position at bottom instead */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Center alignment */
+/* Slightly adjust the letterReveal animation to work with lasers */
+@keyframes letterReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
+  50% {
+    opacity: 0.5;
+    text-shadow: 0 0 20px #fff, 0 0 30px #00f;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(100, 200, 255, 0.5);
+  }
+}
+
+/* Remove or modify the old particle burst effect */
+.intro-overlay::before {
+  content: none; /* Remove the old effect */
+}
+
+@media screen and (max-width: 768px) {
+  .space-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Remove fixed positioning if it causes issues */
+    padding: 1rem;
+  }
   .nav-buttons {
-    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+    margin-bottom: 1rem; /* space between nav and back button */
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
   }
-  
+  .back-button {
+    position: static; /* Let it flow normally in the column */
+    transform: none;
+    margin: 0 auto;
+    display: block;
+  }
   .space-button {
-    margin-bottom: 0.5rem; /* Add some spacing between wrapped buttons */
+    margin-bottom: 0.5rem;
+  }
+}
+/* Projects Page Styles */
+.projects-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.projects-page.visible {
+  opacity: 1;
+}
+
+.projects-container {
+  width: 80%;
+  max-width: 1200px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: transform 0.3s ease, background 0.3s ease;
+  width: 100%;
+  max-width: 800px; /* Limit width for centering */
+}
+
+.project-item:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.project-icon {
+  width: 64px;
+  height: 64px;
+  margin-right: 1rem;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.25rem;
+}
+
+.project-icon img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.project-details {
+  flex: 1;
+  color: white;
+}
+
+.project-details h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-family: Arial, sans-serif;
+}
+
+.project-details p {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  color: #cccccc;
+}
+
+.project-tech {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.tech-tile {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.tech-tile:hover {
+  transform: scale(1.1);
+}
+
+.tech-tile img {
+  width: 24px;
+  height: 24px;
+}
+
+.tech-tile::after {
+  content: attr(data-tech);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.tech-tile:hover::after {
+  opacity: 1;
+}
+
+/* Back Button Positioning */
+.projects-page .back-button {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media screen and (max-width: 768px) {
+  .projects-container {
+    width: 90%;
+    padding: 1rem;
+  }
+
+  .project-item {
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 100%;
+  }
+
+  .project-icon {
+    margin-bottom: 1rem;
+  }
+
+  .project-tech {
+    margin-left: 0;
+    margin-top: 1rem;
   }
 }
