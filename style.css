@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   overflow: hidden;
   background-color: black;
+  font-family: Arial, sans-serif;
 }
 
 /* The Three.js canvas */
@@ -210,7 +211,6 @@ canvas {
   align-items: center;
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
-  padding-top: 6rem; /* Space for navigation */
 }
 
 .projects-page.visible {
@@ -218,6 +218,8 @@ canvas {
 }
 
 .projects-container {
+  position: relative;
+  top: 25%;
   width: 100%;
   padding: 2rem;
   display: flex;
@@ -287,7 +289,6 @@ canvas {
 .project-details h2 {
   margin: 0;
   font-size: 1.5rem;
-  font-family: Arial, sans-serif;
 }
 
 .project-details p {

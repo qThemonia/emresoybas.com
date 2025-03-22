@@ -952,61 +952,60 @@ function setupUI(hoverControls, settingsUI, transitionState) {
   planetButtons.forEach((button, index) => {
     button.addEventListener('click', () => {
       if (transitionState.inProgress) return;
-      
-      // Reset all buttons first
+
+      const planet = button.dataset.planet;
+      const view = planetViews[planet];
+      if (!view) return;
+
+      // If already tracking a different planet, clean up current view
+      if (isTracking && trackedObject !== view.object) {
+        const projectsPage = document.querySelector('.projects-page');
+        if (trackedObject === earth.mesh) {
+          projectsPage.classList.remove('visible');
+          setTimeout(() => {
+            projectsPage.style.display = 'none';
+          }, 500); // Match stopTracking fade-out
+        }
+        scene.visible = true; // Ensure scene is visible for transition
+      }
+
+      // Reset all buttons and scale the clicked one
       resetAllButtonsToNormal();
-      
-      // Make the clicked button larger
       button.classList.add('active-planet');
-      
-      // Find the label associated with this button
       const label = button.parentNode.querySelector('.planet-label');
       if (label) {
         label.classList.add('active-label');
       }
-      
+
       // Move other buttons to make space
       const buttonWidth = button.offsetWidth;
-      const expandedWidth = buttonWidth * 1.7; // 50% larger
+      const expandedWidth = buttonWidth * 1.7;
       const spaceNeeded = (expandedWidth - buttonWidth) / 2;
-      
+
       planetButtons.forEach((otherButton, otherIndex) => {
         if (otherButton !== button) {
           if (otherIndex < index) {
-            // Move buttons before the active one to the left
             otherButton.style.transform = `translateX(-${spaceNeeded}px) scale(1)`;
-            
-            // Also move their labels
             const otherLabel = otherButton.parentNode.querySelector('.planet-label');
             if (otherLabel) {
               otherLabel.style.transform = `translateX(-${spaceNeeded}px) scale(1)`;
             }
           } else {
-            // Move buttons after the active one to the right
             otherButton.style.transform = `translateX(${spaceNeeded}px) scale(1)`;
-            
-            // Also move their labels
             const otherLabel = otherButton.parentNode.querySelector('.planet-label');
             if (otherLabel) {
               otherLabel.style.transform = `translateX(${spaceNeeded}px) scale(1)`;
             }
           }
         } else {
-          // The active button stays centered but grows
           otherButton.style.transform = 'scale(1.7)';
-          
-          // Scale the label as well
           if (label) {
             label.style.transform = 'scale(1.7)';
           }
         }
       });
-      
-      const planet = button.dataset.planet;
-      const view = planetViews[planet];
-      if (view) {
-        startTracking(view);
-      }
+
+      startTracking(view);
     });
   });
 
@@ -1016,15 +1015,12 @@ function setupUI(hoverControls, settingsUI, transitionState) {
     [data-planet] {
       transition: transform 0.3s ease;
     }
-    
     .active-planet {
       z-index: 30;
     }
-    
     .planet-label {
       transition: transform 0.3s ease;
     }
-    
     .active-label {
       display: none;
       color: #ffffff;
@@ -1068,19 +1064,16 @@ function setupUI(hoverControls, settingsUI, transitionState) {
       angle: Math.PI * 0.6
     }
   };
-  
+
   function calculateViewPosition(planetMesh, config) {
     const planetPosition = new THREE.Vector3();
     planetMesh.getWorldPosition(planetPosition);
-  
     const sunToPlanet = planetPosition.clone().sub(new THREE.Vector3(0, 0, 0));
     const cameraOffset = sunToPlanet.clone()
       .normalize()
       .multiplyScalar(config.distance);
-  
     const cameraPosition = planetPosition.clone().add(cameraOffset);
     cameraPosition.y += config.height;
-  
     return {
       cameraPos: cameraPosition,
       targetPos: planetPosition.clone()
@@ -1089,12 +1082,9 @@ function setupUI(hoverControls, settingsUI, transitionState) {
 
   function updateCameraForTracking() {
     if (!isTracking || !trackedObject || transitionState.inProgress) return;
-
     const planetPosition = new THREE.Vector3();
     trackedObject.getWorldPosition(planetPosition);
-
     const { cameraPos, targetPos } = calculateViewPosition(trackedObject, currentCameraDistance);
-    
     camera.position.lerp(cameraPos, 0.1);
     controls.target.lerp(targetPos, 0.1);
     camera.lookAt(controls.target);
@@ -1165,19 +1155,18 @@ function setupUI(hoverControls, settingsUI, transitionState) {
         transitionState.inProgress = false;
         controls.target.copy(planetWorldPosition);
         hoverControls.reset();
-        ssaaPass.enabled = false; // Turn off SSAA when fully zoomed in
-        settingsUI.updateSSAAStatus(); // Update SSAA button text
+        ssaaPass.enabled = false;
+        settingsUI.updateSSAAStatus();
         scene.visible = false;
         settingsContainer.style.display = 'none';
 
-        // Show Projects page if Earth (Projects button) is clicked
-      if (planetConfig.object === earth.mesh) {
-        const projectsPage = document.querySelector('.projects-page');
-        projectsPage.style.display = 'block';
-        setTimeout(() => {
-          projectsPage.classList.add('visible');
-        }, 10); // Small delay to trigger transition
-      }
+        if (planetConfig.object === earth.mesh) {
+          const projectsPage = document.querySelector('.projects-page');
+          projectsPage.style.display = 'block';
+          setTimeout(() => {
+            projectsPage.classList.add('visible');
+          }, 10);
+        }
       });
     
     transitionState.cameraPosTween.start();
@@ -1205,7 +1194,6 @@ function setupUI(hoverControls, settingsUI, transitionState) {
 
     isTracking = false;
     backButton.style.display = 'none';
-    // Restore quality to High only if user had set it; otherwise, keep it Low.
     if (userQualityHighSet) {
       ssaaPass.enabled = true;
     } else {
@@ -1214,15 +1202,14 @@ function setupUI(hoverControls, settingsUI, transitionState) {
     settingsUI.updateSSAAStatus();
     resetAllButtonsToNormal();
 
-    // Hide Projects page
-  const projectsPage = document.querySelector('.projects-page');
-  if (projectsPage.classList.contains('visible')) {
-    projectsPage.classList.remove('visible');
-    setTimeout(() => {
-      projectsPage.style.display = 'none';
-    }, 500); // Match transition duration
-  }
-  settingsContainer.style.display = 'flex';
+    const projectsPage = document.querySelector('.projects-page');
+    if (projectsPage.classList.contains('visible')) {
+      projectsPage.classList.remove('visible');
+      setTimeout(() => {
+        projectsPage.style.display = 'none';
+      }, 500);
+    }
+    settingsContainer.style.display = 'flex';
 
     const sunPosition = new THREE.Vector3(0, 0, 0);
     const startTarget = controls.target.clone();
@@ -1265,44 +1252,34 @@ function setupUI(hoverControls, settingsUI, transitionState) {
     transitionState.currentTween = transitionState.targetTween;
   }
 
-// Event listeners
-planetButtons.forEach(button => {
-  button.addEventListener('click', () => {
+  // Back button listener (unchanged)
+  backButton.addEventListener('click', () => {
     if (transitionState.inProgress) return;
-    const planet = button.dataset.planet;
-    const view = planetViews[planet];
-    if (view) startTracking(view);
+    stopTracking();
   });
-});
 
-backButton.addEventListener('click', () => {
-  if (transitionState.inProgress) return;
-  stopTracking();
-});
+  // Settings button functionality (unchanged)
+  const bloomToggle = document.querySelector('#bloom-toggle');
+  bloomToggle.addEventListener('click', () => {
+    bloomEnabled = !bloomEnabled;
+    bloomToggle.textContent = `Bloom: ${bloomEnabled ? 'ON' : 'OFF'}`;
+    bloomPass.enabled = bloomEnabled;
+  });
 
+  const qualityToggle = document.querySelector('#quality-toggle');
+  qualityToggle.addEventListener('click', () => {
+    ssaaEnabled = !ssaaEnabled;
+    qualityToggle.textContent = `Quality: ${ssaaEnabled ? 'High' : 'Low'}`;
+    ssaaPass.enabled = ssaaEnabled;
+  });
 
-// Settings button functionality
-const bloomToggle = document.querySelector('#bloom-toggle');
-bloomToggle.addEventListener('click', () => {
-  bloomEnabled = !bloomEnabled;
-  bloomToggle.textContent = `Bloom: ${bloomEnabled ? 'ON' : 'OFF'}`;
-  bloomPass.enabled = bloomEnabled;
-});
-
-const qualityToggle = document.querySelector('#quality-toggle');
-qualityToggle.addEventListener('click', () => {
-  ssaaEnabled = !ssaaEnabled;
-  qualityToggle.textContent = `Quality: ${ssaaEnabled ? 'High' : 'Low'}`;
-  ssaaPass.enabled = ssaaEnabled;
-});
-
-const fastForwardToggle = document.querySelector('#fast-forward-toggle');
-let isFastForward = false;
-fastForwardToggle.addEventListener('click', () => {
-  isFastForward = !isFastForward;
-  simulationSpeed = isFastForward ? 50 : 1;
-  fastForwardToggle.textContent = `Fast Forward: ${isFastForward ? 'ON' : 'OFF'}`;
-});
+  const fastForwardToggle = document.querySelector('#fast-forward-toggle');
+  let isFastForward = false;
+  fastForwardToggle.addEventListener('click', () => {
+    isFastForward = !isFastForward;
+    simulationSpeed = isFastForward ? 50 : 1;
+    fastForwardToggle.textContent = `Fast Forward: ${isFastForward ? 'ON' : 'OFF'}`;
+  });
 
   return updateCameraForTracking;
 }
