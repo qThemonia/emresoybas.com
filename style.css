@@ -19,13 +19,15 @@ canvas {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 10;
+  z-index: 20;
   padding: 2rem;
   pointer-events: none;
 }
 
 .nav-buttons {
   display: flex;
+  position: relative;
+  z-index: 20;
   justify-content: center;
   gap: 1rem;
   pointer-events: auto;
@@ -57,6 +59,7 @@ canvas {
 
 .back-button {
   position: fixed;
+  z-index: 20;
   top: 2rem;
   left: 2rem;
   display: none;
@@ -203,10 +206,11 @@ canvas {
   z-index: 15;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* Changed from center */
   align-items: center;
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
+  padding-top: 6rem; /* Space for navigation */
 }
 
 .projects-page.visible {
@@ -214,8 +218,7 @@ canvas {
 }
 
 .projects-container {
-  width: 80%;
-  max-width: 1200px;
+  width: 100%;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -225,6 +228,7 @@ canvas {
 .project-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 2rem;
   background: rgba(255, 255, 255, 0.05);
   padding: 1rem;
@@ -237,6 +241,26 @@ canvas {
 .project-item:hover {
   transform: translateY(-5px);
   background: rgba(255, 255, 255, 0.1);
+}
+.project-content{
+  flex-grow: 1; /* Takes up available space, pushing icon to the right */
+  margin-right: 2rem; /* Space between content and icon */
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  color: #ffffff; /* White icon, adjust as needed */
+  text-decoration: none; /* Remove underline */
+}
+
+.github-icon {
+  font-size: 24px; /* Size of the icon */
+  transition: color 0.3s ease; /* Smooth hover effect */
+}
+
+.github-link:hover .github-icon {
+  color: #4078c0; /* GitHub’s brand color on hover */
 }
 
 .project-icon {
@@ -273,6 +297,7 @@ canvas {
 }
 
 .project-tech {
+  
   display: flex;
   gap: 0.5rem;
   margin-left: 1rem;
@@ -320,6 +345,8 @@ canvas {
   opacity: 1;
 }
 
+
+
 /* Back Button Positioning */
 .projects-page .back-button {
   position: absolute;
@@ -328,6 +355,13 @@ canvas {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.vertical-line {
+  width: 2px; /* Thin vertical line */
+  height: 50px; /* Adjust height to match content */
+  background: #adadad; /* White line, adjust color */
+  margin: 0 1rem; /* Space on both sides */
 }
 
 @media screen and (max-width: 768px) {

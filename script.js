@@ -89,9 +89,15 @@ let backButtonHovered = false;
       introOverlay.classList.add('hidden');
       initSolarSystem(); // Start the solar system after intro
       stats.dom.style.display = 'block';
-    }, 2300); // 2.5 seconds total (1s for text + 1.5s for fade)
+    }, 2500); // 2.5 seconds total (1s for text + 1.5s for fade)
   });
-  
+
+  //GLOBALS
+  let isTracking = false;
+  const settingsContainer = document.createElement('div');
+  settingsContainer.className = 'settings-container';
+
+
   function initSolarSystem(){
   let simulationSpeed = 1; // Default: normal speed
 
@@ -619,13 +625,12 @@ const transitionState = {
 const settingsUI = createSettingsUI(); // Capture the settingsUI object
 const hoverControls = setupPlanetHoverAnimations(transitionState);
 const updateCameraForTracking = setupUI(hoverControls, settingsUI, transitionState); // Pass transitionState here too
-  
+
   //
   // SETTINGS UI
   //
   function createSettingsUI() {
-    const settingsContainer = document.createElement('div');
-    settingsContainer.className = 'settings-container';
+    
     document.body.appendChild(settingsContainer);
   
     // Create Bloom toggle
@@ -699,7 +704,6 @@ const updateCameraForTracking = setupUI(hoverControls, settingsUI, transitionSta
   //
 
 let isAnimationPaused = false;
-let isTracking = false;
 let trackedObject = null;
 let currentCameraDistance = null;
 
@@ -930,15 +934,13 @@ document.head.appendChild(labelStyle);
 function setupUI(hoverControls, settingsUI, transitionState) {
   const backButton = document.querySelector('.back-button');
   const planetButtons = document.querySelectorAll('[data-planet]');
-  const buttonContainer = document.querySelector('.nav-buttons'); // Assuming this exists
+  const buttonContainer = document.querySelector('.nav-buttons');
 
   // Function to reset all buttons and their labels to normal size and position
   function resetAllButtonsToNormal() {
     planetButtons.forEach(btn => {
       btn.classList.remove('active-planet');
       btn.style.transform = 'translateX(0) scale(1)';
-      
-      // Find and reset the label associated with this button
       const label = btn.parentNode.querySelector('.planet-label');
       if (label) {
         label.classList.remove('active-label');
@@ -1006,15 +1008,6 @@ function setupUI(hoverControls, settingsUI, transitionState) {
         startTracking(view);
       }
     });
-  });
-
-  // Also add this to the back button click handler
-  backButton.addEventListener('click', () => {
-    if (transitionState.inProgress) return;
-    // Reset all buttons to normal size and position when going back
-    resetAllButtonsToNormal();
-    
-    stopTracking();
   });
 
   // Add CSS for the active state and transitions
@@ -1175,6 +1168,7 @@ function setupUI(hoverControls, settingsUI, transitionState) {
         ssaaPass.enabled = false; // Turn off SSAA when fully zoomed in
         settingsUI.updateSSAAStatus(); // Update SSAA button text
         scene.visible = false;
+        settingsContainer.style.display = 'none';
 
         // Show Projects page if Earth (Projects button) is clicked
       if (planetConfig.object === earth.mesh) {
@@ -1218,6 +1212,7 @@ function setupUI(hoverControls, settingsUI, transitionState) {
       ssaaPass.enabled = false;
     }
     settingsUI.updateSSAAStatus();
+    resetAllButtonsToNormal();
 
     // Hide Projects page
   const projectsPage = document.querySelector('.projects-page');
@@ -1227,7 +1222,8 @@ function setupUI(hoverControls, settingsUI, transitionState) {
       projectsPage.style.display = 'none';
     }, 500); // Match transition duration
   }
-  
+  settingsContainer.style.display = 'flex';
+
     const sunPosition = new THREE.Vector3(0, 0, 0);
     const startTarget = controls.target.clone();
     
@@ -1269,21 +1265,44 @@ function setupUI(hoverControls, settingsUI, transitionState) {
     transitionState.currentTween = transitionState.targetTween;
   }
 
-  planetButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      if (transitionState.inProgress) return;
-      const planet = button.dataset.planet;
-      const view = planetViews[planet];
-      if (view) {
-        startTracking(view);
-      }
-    });
-  });
-
-  backButton.addEventListener('click', () => {
+// Event listeners
+planetButtons.forEach(button => {
+  button.addEventListener('click', () => {
     if (transitionState.inProgress) return;
-    stopTracking();
+    const planet = button.dataset.planet;
+    const view = planetViews[planet];
+    if (view) startTracking(view);
   });
+});
+
+backButton.addEventListener('click', () => {
+  if (transitionState.inProgress) return;
+  stopTracking();
+});
+
+
+// Settings button functionality
+const bloomToggle = document.querySelector('#bloom-toggle');
+bloomToggle.addEventListener('click', () => {
+  bloomEnabled = !bloomEnabled;
+  bloomToggle.textContent = `Bloom: ${bloomEnabled ? 'ON' : 'OFF'}`;
+  bloomPass.enabled = bloomEnabled;
+});
+
+const qualityToggle = document.querySelector('#quality-toggle');
+qualityToggle.addEventListener('click', () => {
+  ssaaEnabled = !ssaaEnabled;
+  qualityToggle.textContent = `Quality: ${ssaaEnabled ? 'High' : 'Low'}`;
+  ssaaPass.enabled = ssaaEnabled;
+});
+
+const fastForwardToggle = document.querySelector('#fast-forward-toggle');
+let isFastForward = false;
+fastForwardToggle.addEventListener('click', () => {
+  isFastForward = !isFastForward;
+  simulationSpeed = isFastForward ? 50 : 1;
+  fastForwardToggle.textContent = `Fast Forward: ${isFastForward ? 'ON' : 'OFF'}`;
+});
 
   return updateCameraForTracking;
 }
