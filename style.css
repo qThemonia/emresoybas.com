@@ -232,7 +232,7 @@ canvas {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 2rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(20, 40, 60, 0.4);
   padding: 1rem;
   border-radius: 0.5rem;
   transition: transform 0.3s ease, background 0.3s ease;
@@ -363,6 +363,81 @@ canvas {
   height: 50px; /* Adjust height to match content */
   background: #adadad; /* White line, adjust color */
   margin: 0 1rem; /* Space on both sides */
+}
+
+/* Universal Page Styles */
+.page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.page.visible {
+  opacity: 1;
+}
+
+/* Back Button Positioning for all pages */
+.page .back-button {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* About Me Page Styles */
+.about-me-page {
+  z-index: 15;
+  background: rgba(0, 0, 0);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.about-me-container {
+  width: 90%;
+  max-width: 600px;
+  padding: 2rem;
+  background: rgba(20, 40, 60, 0.3);
+  border-radius: 1rem;
+  box-shadow: 0 0 20px rgba(100, 200, 255, 0.2);
+  text-align: center;
+  color: #ffffff;
+}
+
+.about-me-container h1 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+}
+
+.about-me-container p {
+  font-size: 1.1rem;
+  color: #d0d0d0;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+@media screen and (max-width: 768px) {
+  .about-me-container {
+    width: 85%;
+    padding: 1.5rem;
+  }
+
+  .about-me-container h1 {
+    font-size: 2rem;
+  }
+
+  .about-me-container p {
+    font-size: 1rem;
+  }
 }
 
 @media screen and (max-width: 768px) {
