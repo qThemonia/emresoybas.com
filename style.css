@@ -6,84 +6,16 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
-<<<<<<< HEAD
-/* The Three.js canvas */
-=======
 /* Three.js Canvas */
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 canvas {
   position: absolute;
   top: 0;
   left: 0;
-<<<<<<< HEAD
-  z-index: 1;
-  display: block;
-  transition: opacity 3s ease-in-out;
-}
-.space-ui {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  padding: 2rem;
-  pointer-events: none;
-}
-
-.nav-buttons {
-  display: flex;
-  position: relative;
-  z-index: 20;
-  justify-content: center;
-  gap: 1rem;
-  pointer-events: auto;
-}
-
-.space-button {
-  background: rgba(0, 0, 0, 0.2);
-  border: 2px solid rgba(66, 153, 225, 0.3);
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  color: rgb(147, 197, 253);
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(5px);
-  font-family: Arial, sans-serif;
-  font-size: 20px;
-  letter-spacing: 1px;
-  pointer-events: auto;
-  user-select: none;
-}
-
-.space-button:hover {
-  background: rgba(30, 58, 138, 0.2);
-  border-color: rgba(47, 143, 221, 0.699);
-}
-
-.back-button {
-  position: fixed;
-  z-index: 20;
-  top: 2rem;
-  left: 2rem;
-  display: none;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.back-button::before {
-  content: "←";
-  font-size: 1.2em;
-}
-=======
   width: 100%;
   height: 100%;
   z-index: 1;
   transition: opacity 3s ease-in-out;
 }
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 
 /* Intro Overlay Styles */
 .intro-overlay {
@@ -106,34 +38,14 @@ canvas {
   pointer-events: none;
 }
 
-<<<<<<< HEAD
-/* Modified cosmic text for laser effect */
-=======
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 .cosmic-text {  
   font-family: Arial, sans-serif;
   font-size: 5rem;
   color: #fff;
   letter-spacing: 5px;
-<<<<<<< HEAD
-  position: relative;
-  z-index: 10;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
-.cosmic-text .letter {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: letterReveal 0.5s forwards;
-}
-
-/* Explosion effect (adjusted for red theme) */
-=======
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-}
-
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 .laser-explosion {
   position: absolute;
   top: 50%;
@@ -142,118 +54,12 @@ canvas {
   width: 0;
   height: 0;
   border-radius: 50%;
-<<<<<<< HEAD
-  background: radial-gradient(
-    circle,
-    rgb(187, 194, 0) 0%, /* Red center */
-    rgba(115, 123, 0, 0.8) 30%, /* Orange-red fade */
-    rgba(0, 0, 0, 0.5) 60%, /* Red outer glow */
-    transparent 100%
-  );
-=======
   background: radial-gradient(circle, rgb(187, 194, 0) 0%, rgba(115, 123, 0, 0.8) 30%, rgba(0, 0, 0, 0.5) 60%, transparent 100%);
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   opacity: 0;
   animation: explosion 1s ease-out 1.5s forwards;
   z-index: 8;
 }
 
-<<<<<<< HEAD
-/* Explosion animation */
-@keyframes explosion {
-  0% {
-    width: 0;
-    height: 0;
-    opacity: 0;
-  }
-  40% {
-    opacity: 1;
-  }
-  100% {
-    width: 200vw;
-    height: 200vw;
-    opacity: 0;
-  }
-}
-
-/* Slightly adjust the letterReveal animation to work with lasers */
-@keyframes letterReveal {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  50% {
-    opacity: 0.5;
-    text-shadow: 0 0 20px #fff, 0 0 30px #00f;
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(100, 200, 255, 0.5);
-  }
-}
-
-/* Remove or modify the old particle burst effect */
-.intro-overlay::before {
-  content: none; /* Remove the old effect */
-}
-
-@media screen and (max-width: 768px) {
-  .space-ui {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* Remove fixed positioning if it causes issues */
-    padding: 1rem;
-  }
-  .nav-buttons {
-    margin-bottom: 1rem; /* space between nav and back button */
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .back-button {
-    position: static; /* Let it flow normally in the column */
-    transform: none;
-    margin: 0 auto;
-    display: block;
-  }
-  .space-button {
-    margin-bottom: 0.5rem;
-  }
-}
-/* Projects Page Styles */
-.projects-page {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: black;
-  z-index: 15;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start; /* Changed from center */
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
-}
-
-.projects-page.visible {
-  opacity: 1;
-}
-
-.projects-container {
-  position: relative;
-  top: 25%;
-  width: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-=======
 @keyframes explosion {
   0% { width: 0; height: 0; opacity: 0; }
   40% { opacity: 1; }
@@ -314,54 +120,21 @@ canvas {
 }
 
 /* Project Styles */
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 .project-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-<<<<<<< HEAD
-  margin-bottom: 2rem;
-=======
   margin-bottom: 1.5rem;
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   background: rgba(255, 255, 255, 0.05);
   padding: 1rem;
   border-radius: 0.5rem;
   transition: transform 0.3s ease, background 0.3s ease;
-<<<<<<< HEAD
-  width: 100%;
-  max-width: 800px; /* Limit width for centering */
-=======
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 }
 
 .project-item:hover {
   transform: translateY(-5px);
   background: rgba(255, 255, 255, 0.1);
 }
-<<<<<<< HEAD
-.project-content{
-  flex-grow: 1; /* Takes up available space, pushing icon to the right */
-  margin-right: 2rem; /* Space between content and icon */
-}
-
-.github-link {
-  display: flex;
-  align-items: center;
-  color: #ffffff; /* White icon, adjust as needed */
-  text-decoration: none; /* Remove underline */
-}
-
-.github-icon {
-  font-size: 24px; /* Size of the icon */
-  transition: color 0.3s ease; /* Smooth hover effect */
-}
-
-.github-link:hover .github-icon {
-  color: #4078c0; /* GitHub’s brand color on hover */
-}
-=======
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 
 .project-icon {
   width: 64px;
@@ -391,19 +164,11 @@ canvas {
 
 .project-details p {
   margin: 0.5rem 0 0;
-<<<<<<< HEAD
-  font-size: 1rem;
-=======
   font-size: 0.9rem;
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   color: #cccccc;
 }
 
 .project-tech {
-<<<<<<< HEAD
-  
-=======
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   display: flex;
   gap: 0.5rem;
   margin-left: 1rem;
@@ -417,10 +182,6 @@ canvas {
   display: flex;
   justify-content: center;
   align-items: center;
-<<<<<<< HEAD
-  position: relative;
-=======
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   transition: transform 0.2s ease;
 }
 
@@ -433,67 +194,6 @@ canvas {
   height: 24px;
 }
 
-<<<<<<< HEAD
-.tech-tile::after {
-  content: attr(data-tech);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.8rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  margin-bottom: 0.5rem;
-}
-
-.tech-tile:hover::after {
-  opacity: 1;
-}
-
-
-
-/* Back Button Positioning */
-.projects-page .back-button {
-  position: absolute;
-  top: 2rem;
-  left: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.vertical-line {
-  width: 2px; /* Thin vertical line */
-  height: 50px; /* Adjust height to match content */
-  background: #adadad; /* White line, adjust color */
-  margin: 0 1rem; /* Space on both sides */
-}
-
-@media screen and (max-width: 768px) {
-  .projects-container {
-    width: 90%;
-    padding: 1rem;
-  }
-
-  .project-item {
-    flex-direction: column;
-    align-items: flex-start;
-    max-width: 100%;
-  }
-
-  .project-icon {
-    margin-bottom: 1rem;
-  }
-
-  .project-tech {
-    margin-left: 0;
-    margin-top: 1rem;
-=======
 .vertical-line {
   width: 2px;
   height: 50px;
@@ -591,6 +291,5 @@ canvas {
   .contact-panel {
     top: 65%;
     bottom: auto;
->>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   }
 }
