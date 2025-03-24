@@ -6,11 +6,16 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
+<<<<<<< HEAD
 /* The Three.js canvas */
+=======
+/* Three.js Canvas */
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 canvas {
   position: absolute;
   top: 0;
   left: 0;
+<<<<<<< HEAD
   z-index: 1;
   display: block;
   transition: opacity 3s ease-in-out;
@@ -72,6 +77,13 @@ canvas {
   content: "←";
   font-size: 1.2em;
 }
+=======
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  transition: opacity 3s ease-in-out;
+}
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 
 /* Intro Overlay Styles */
 .intro-overlay {
@@ -94,12 +106,16 @@ canvas {
   pointer-events: none;
 }
 
+<<<<<<< HEAD
 /* Modified cosmic text for laser effect */
+=======
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 .cosmic-text {  
   font-family: Arial, sans-serif;
   font-size: 5rem;
   color: #fff;
   letter-spacing: 5px;
+<<<<<<< HEAD
   position: relative;
   z-index: 10;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
@@ -113,6 +129,11 @@ canvas {
 }
 
 /* Explosion effect (adjusted for red theme) */
+=======
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 .laser-explosion {
   position: absolute;
   top: 50%;
@@ -121,6 +142,7 @@ canvas {
   width: 0;
   height: 0;
   border-radius: 50%;
+<<<<<<< HEAD
   background: radial-gradient(
     circle,
     rgb(187, 194, 0) 0%, /* Red center */
@@ -128,11 +150,15 @@ canvas {
     rgba(0, 0, 0, 0.5) 60%, /* Red outer glow */
     transparent 100%
   );
+=======
+  background: radial-gradient(circle, rgb(187, 194, 0) 0%, rgba(115, 123, 0, 0.8) 30%, rgba(0, 0, 0, 0.5) 60%, transparent 100%);
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   opacity: 0;
   animation: explosion 1s ease-out 1.5s forwards;
   z-index: 8;
 }
 
+<<<<<<< HEAD
 /* Explosion animation */
 @keyframes explosion {
   0% {
@@ -227,23 +253,93 @@ canvas {
   align-items: center;
 }
 
+=======
+@keyframes explosion {
+  0% { width: 0; height: 0; opacity: 0; }
+  40% { opacity: 1; }
+  100% { width: 200vw; height: 200vw; opacity: 0; }
+}
+
+/* Floating Panels */
+.content-panel {
+  position: absolute;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 1rem;
+  box-shadow: 0 0 20px rgba(100, 200, 255, 0.3);
+  transition: transform 0.3s ease;
+  pointer-events: none; /* Pass clicks through background */
+}
+
+.content-panel:hover {
+  transform: scale(1.05);
+}
+
+.panel-container {
+  padding: 1.5rem;
+  color: #ffffff;
+  pointer-events: auto; /* Enable clicks on content */
+}
+
+.content-panel h1 {
+  font-size: 2rem;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+}
+
+.content-panel p {
+  font-size: 1rem;
+  color: #d0d0d0;
+  line-height: 1.6;
+}
+
+/* Panel Positions */
+.about-me-panel {
+  top: 10%;
+  left: 5%;
+  width: 300px;
+}
+
+.projects-panel {
+  top: 10%;
+  right: 5%;
+  width: 400px;
+}
+
+.contact-panel {
+  bottom: 10%;
+  left: 5%;
+  width: 300px;
+}
+
+/* Project Styles */
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 .project-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
+<<<<<<< HEAD
   margin-bottom: 2rem;
+=======
+  margin-bottom: 1.5rem;
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   background: rgba(255, 255, 255, 0.05);
   padding: 1rem;
   border-radius: 0.5rem;
   transition: transform 0.3s ease, background 0.3s ease;
+<<<<<<< HEAD
   width: 100%;
   max-width: 800px; /* Limit width for centering */
+=======
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 }
 
 .project-item:hover {
   transform: translateY(-5px);
   background: rgba(255, 255, 255, 0.1);
 }
+<<<<<<< HEAD
 .project-content{
   flex-grow: 1; /* Takes up available space, pushing icon to the right */
   margin-right: 2rem; /* Space between content and icon */
@@ -264,6 +360,8 @@ canvas {
 .github-link:hover .github-icon {
   color: #4078c0; /* GitHub’s brand color on hover */
 }
+=======
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
 
 .project-icon {
   width: 64px;
@@ -293,12 +391,19 @@ canvas {
 
 .project-details p {
   margin: 0.5rem 0 0;
+<<<<<<< HEAD
   font-size: 1rem;
+=======
+  font-size: 0.9rem;
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   color: #cccccc;
 }
 
 .project-tech {
+<<<<<<< HEAD
   
+=======
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   display: flex;
   gap: 0.5rem;
   margin-left: 1rem;
@@ -312,7 +417,10 @@ canvas {
   display: flex;
   justify-content: center;
   align-items: center;
+<<<<<<< HEAD
   position: relative;
+=======
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   transition: transform 0.2s ease;
 }
 
@@ -325,6 +433,7 @@ canvas {
   height: 24px;
 }
 
+<<<<<<< HEAD
 .tech-tile::after {
   content: attr(data-tech);
   position: absolute;
@@ -384,5 +493,104 @@ canvas {
   .project-tech {
     margin-left: 0;
     margin-top: 1rem;
+=======
+.vertical-line {
+  width: 2px;
+  height: 50px;
+  background: #adadad;
+  margin: 0 1rem;
+}
+
+.github-link {
+  color: #ffffff;
+}
+
+.github-icon {
+  font-size: 24px;
+  transition: color 0.3s ease;
+}
+
+.github-link:hover .github-icon {
+  color: #4078c0;
+}
+
+/* Contact Styles */
+.contact-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.space-button {
+  background: rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(66, 153, 225, 0.3);
+  color: rgb(147, 197, 253);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.space-button:hover {
+  background: rgba(30, 58, 138, 0.2);
+  border-color: rgba(47, 143, 221, 0.699);
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.social-icon {
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.social-icon:hover {
+  color: #64c8ff;
+}
+
+/* Settings UI */
+.settings-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 20;
+}
+
+.settings-button {
+  min-width: 120px;
+  text-align: center;
+  font-size: 16px;
+  padding: 0.5rem 1rem;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .content-panel {
+    width: 80%;
+    left: 10%;
+    right: auto;
+  }
+
+  .about-me-panel {
+    top: 5%;
+  }
+
+  .projects-panel {
+    top: 35%;
+    left: 10%;
+    right: auto;
+  }
+
+  .contact-panel {
+    top: 65%;
+    bottom: auto;
+>>>>>>> c370f5e9442d7ea3d6d8fedbfd7a777bec836b42
   }
 }
