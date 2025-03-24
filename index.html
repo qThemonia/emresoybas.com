@@ -22,104 +22,63 @@
     <div class="intro-overlay">
       <h1 class="cosmic-text">Emre Soybas</h1>
     </div>
-    
-<div class="space-ui">
-  <div class="nav-buttons">
-    <button class="space-button" data-planet="mars">About Me</button>
-    <button class="space-button" data-planet="earth">Projects</button>
-    <button class="space-button" data-planet="binary1">Contact</button>
-    <button class="space-button" data-planet="binary2">My Cat</button>
-    <button class="space-button" data-planet="saturn">Blog</button>
-    
 
-    <!-- Add more planet buttons as needed -->
-  </div>
-</div>
-
-<button class="space-button back-button" style="display: none;">Back</button>
-
-<!-- Settings UI -->
-<div class="settings-container" style="display: none;">
-  <button class="space-button settings-button" id="bloom-toggle">Bloom: ON</button>
-  <button class="space-button settings-button" id="quality-toggle">Quality: Low</button>
-  <button class="space-button settings-button" id="fast-forward-toggle">Fast Forward: OFF</button>
-</div>
-
-<!-- Projects Page -->
-<div class="projects-page" style="display: none;">
-  <div class="projects-container">
-    <!-- Project 1 -->
-    <div class="project-item">
-      <div class="project-icon">
-        <img src="rss/favicon-32x32.png" alt="emresoybas.com icon">
+    <!-- Floating Content Panels -->
+    <div class="content-panel about-me-panel" data-planet="mars">
+      <div class="panel-container">
+        <h1>About Me</h1>
+        <p>Hi, I'm Emre Soybas! I'm a ermmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm.....</p>
+        <p>I enjoy ermmmm.....</p>
       </div>
-      <div class="project-details">
-        <h2>emresoybas.com</h2>
-        <p>My portfolio website doubling as a star system simulation with chaotic gravity calculations, made with ThreeJS. You're on it now!</p>
-      </div>
-      <div class="project-tech">
-        <div class="tech-tile" data-tech="JavaScript" style="color: #FFD43B;">
-          <i class="fa-brands fa-js fa-2xl" style="color: #FFD43B;"></i>
-        </div>
-        <div class="tech-tile" data-tech="Three.js">
-          <img src="rss/Three_icon.png" alt="Three.js">
-        </div>
-      </div>
-      <div class="vertical-line"></div>
-      <a href="https://github.com/qThemonia/emresoybas.com" target="_blank" class="github-link">
-        <i class="fab fa-github github-icon"></i>
-      </a>
     </div>
 
-    <!-- Project 2 -->
-    <div class="project-item">
-      <div class="project-icon">
-        <img src="rss/Tempest_icon.png" alt="Tempest icon">
-      </div>
-      <div class="project-details">
-        <h2>Tempest</h2>
-        <p>A Python bot that uses PNW API for workflow automation.</p>
-      </div>
-      <div class="project-tech">
-        <div class="tech-tile" data-tech="Python">
-          <i class="fa-brands fa-python fa-2xl" style="color: #5793c1;"></i>
+    <div class="content-panel projects-panel" data-planet="earth">
+      <div class="panel-container">
+        <h1>Projects</h1>
+        <div class="project-item">
+          <div class="project-icon">
+            <img src="rss/favicon-32x32.png" alt="emresoybas.com icon">
+          </div>
+          <div class="project-details">
+            <h2>emresoybas.com</h2>
+            <p>My star system showcase with a gravity simulation doubling as a portfolio website, made with ThreeJS. You're on it now!</p>
+          </div>
+          <div class="project-tech">
+            <div class="tech-tile" data-tech="JavaScript" style="color: #FFD43B;">
+              <i class="fa-brands fa-js fa-2xl" style="color: #FFD43B;"></i>
+            </div>
+            <div class="tech-tile" data-tech="Three.js">
+              <img src="rss/Three_icon.png" alt="Three.js">
+            </div>
+          </div>
+          <div class="vertical-line"></div>
+          <a href="https://github.com/qThemonia/emresoybas.com" target="_blank" class="github-link">
+            <i class="fab fa-github github-icon"></i>
+          </a>
         </div>
-        <div class="tech-tile" data-tech="GraphQL">
-          <i class="fa-solid fa-server fa-2xl" style="color: #213d6e;"></i>
-        </div>
+        <!-- Add more projects as needed -->
       </div>
-      <div class="vertical-line"></div>
-      <a href="https://github.com/yourusername/project-placeholder-1" target="_blank" class="github-link">
-        <i class="fab fa-github github-icon"></i>
-      </a>
     </div>
 
-    <!-- Project 3 (Placeholder) -->
-    <div class="project-item">
-      <div class="project-icon">
-        <!-- Empty space for icon -->
-      </div>
-      <div class="project-details">
-        <h2>Project Placeholder 2</h2>
-        <p>Another placeholder for a future project idea.</p>
-      </div>
-      <div class="project-tech">
-        <div class="tech-tile" data-tech="Python">
-          <i class="fa-brands fa-python" style="color: #5793c1;"></i>
+    <div class="content-panel contact-panel" data-planet="binary1">
+      <div class="panel-container">
+        <h1>Contact</h1>
+        <p>Want to chat about space, code, or my cat? Reach out!</p>
+        <div class="contact-options">
+          <a href="mailto:emre@example.com?subject=Hello%20from%20emresoybas.com" class="space-button">Email Me</a>
+          <div class="social-links">
+            <a href="https://github.com/qThemonia" target="_blank" class="social-icon">
+              <i class="fab fa-github fa-2xl"></i>
+            </a>
+            <a href="https://twitter.com/yourusername" target="_blank" class="social-icon">
+              <i class="fab fa-twitter fa-2xl"></i>
+            </a>
+          </div>
         </div>
-        <div class="tech-tile" data-tech="GraphQL">
-          <i class="fa-solid fa-server" style="color: #213d6e;"></i>
-        </div>
       </div>
-      <div class="vertical-line"></div>
-      <a href="https://github.com/yourusername/project-placeholder-2" target="_blank" class="github-link">
-        <i class="fab fa-github github-icon"></i>
-      </a>
     </div>
-  </div>
-</div>
 
-    <!-- The Three.js canvas will be appended via JS -->
+    <!-- Three.js canvas and script -->
     <script type="module" src="script.js"></script>
   </body>
 </html>
