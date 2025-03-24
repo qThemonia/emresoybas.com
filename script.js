@@ -124,8 +124,7 @@ let backButtonHovered = false;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.autoRotate = false;
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.minPolarAngle = 0;
