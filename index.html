@@ -1,26 +1,125 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Emre Soybas</title>
-        <link rel="stylesheet" href="style.css"> 
-        <link rel="apple-touch-icon" sizes="180x180" href="rss/apple-touch-icon.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="rss/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="rss/favicon-16x16.png">
-        <link rel="manifest" href="rss/site.webmanifest">
-        <script type="importmap">
-            {
-              "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@v0.169.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@v0.169.0/examples/jsm/"
-              }
-            }
-          </script>
-    </head>
-    <body>
-      <button id="bloomToggleButton">Toggle Bloom</button>
-      <button id="realismToggleButton">Toggle Realism</button>
-      <button id="lookAtEarthButton">Look at Earth</button>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <head>
+    <meta charset="UTF-8">
+    <title>Emre Soybas</title>
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="apple-touch-icon" sizes="180x180" href="rss/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="rss/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="rss/favicon-16x16.png">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@v0.169.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@v0.169.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Intro Overlay -->
+    <div class="intro-overlay">
+      <h1 class="cosmic-text">Emre Soybas</h1>
+    </div>
+    
+<div class="space-ui">
+  <div class="nav-buttons">
+    <button class="space-button" data-planet="mars">About Me</button>
+    <button class="space-button" data-planet="earth">Projects</button>
+    <button class="space-button" data-planet="binary1">Contact</button>
+    <button class="space-button" data-planet="binary2">My Cat</button>
+    <button class="space-button" data-planet="saturn">Blog</button>
+    
+
+    <!-- Add more planet buttons as needed -->
+  </div>
+</div>
+
+<button class="space-button back-button" style="display: none;">Back</button>
+
+<!-- Settings UI -->
+<div class="settings-container" style="display: none;">
+  <button class="space-button settings-button" id="bloom-toggle">Bloom: ON</button>
+  <button class="space-button settings-button" id="quality-toggle">Quality: Low</button>
+  <button class="space-button settings-button" id="fast-forward-toggle">Fast Forward: OFF</button>
+</div>
+
+<!-- Projects Page -->
+<div class="projects-page" style="display: none;">
+  <div class="projects-container">
+    <!-- Project 1 -->
+    <div class="project-item">
+      <div class="project-icon">
+        <img src="rss/favicon-32x32.png" alt="emresoybas.com icon">
+      </div>
+      <div class="project-details">
+        <h2>emresoybas.com</h2>
+        <p>My portfolio website doubling as a star system simulation with chaotic gravity calculations, made with ThreeJS. You're on it now!</p>
+      </div>
+      <div class="project-tech">
+        <div class="tech-tile" data-tech="JavaScript" style="color: #FFD43B;">
+          <i class="fa-brands fa-js fa-2xl" style="color: #FFD43B;"></i>
+        </div>
+        <div class="tech-tile" data-tech="Three.js">
+          <img src="rss/Three_icon.png" alt="Three.js">
+        </div>
+      </div>
+      <div class="vertical-line"></div>
+      <a href="https://github.com/qThemonia/emresoybas.com" target="_blank" class="github-link">
+        <i class="fab fa-github github-icon"></i>
+      </a>
+    </div>
+
+    <!-- Project 2 -->
+    <div class="project-item">
+      <div class="project-icon">
+        <img src="rss/Tempest_icon.png" alt="Tempest icon">
+      </div>
+      <div class="project-details">
+        <h2>Tempest</h2>
+        <p>A Python bot that uses PNW API for workflow automation.</p>
+      </div>
+      <div class="project-tech">
+        <div class="tech-tile" data-tech="Python">
+          <i class="fa-brands fa-python fa-2xl" style="color: #5793c1;"></i>
+        </div>
+        <div class="tech-tile" data-tech="GraphQL">
+          <i class="fa-solid fa-server fa-2xl" style="color: #213d6e;"></i>
+        </div>
+      </div>
+      <div class="vertical-line"></div>
+      <a href="https://github.com/yourusername/project-placeholder-1" target="_blank" class="github-link">
+        <i class="fab fa-github github-icon"></i>
+      </a>
+    </div>
+
+    <!-- Project 3 (Placeholder) -->
+    <div class="project-item">
+      <div class="project-icon">
+        <!-- Empty space for icon -->
+      </div>
+      <div class="project-details">
+        <h2>Project Placeholder 2</h2>
+        <p>Another placeholder for a future project idea.</p>
+      </div>
+      <div class="project-tech">
+        <div class="tech-tile" data-tech="Python">
+          <i class="fa-brands fa-python" style="color: #5793c1;"></i>
+        </div>
+        <div class="tech-tile" data-tech="GraphQL">
+          <i class="fa-solid fa-server" style="color: #213d6e;"></i>
+        </div>
+      </div>
+      <div class="vertical-line"></div>
+      <a href="https://github.com/yourusername/project-placeholder-2" target="_blank" class="github-link">
+        <i class="fab fa-github github-icon"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
+    <!-- The Three.js canvas will be appended via JS -->
     <script type="module" src="script.js"></script>
     </body>
 </html>
